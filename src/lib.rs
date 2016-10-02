@@ -54,35 +54,61 @@ trait LcmsPixelFormat where Self: Copy
 {
     type Converted: Copy;
     fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature);
-    fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]);
 }
 
+trait CopyAlpha<Converted: Copy> where Self: Copy {
+    fn copy_alpha(src: &[Self], dst: &mut [Converted]);
+}
+
+macro_rules! copy_alpha_impl {
+    ($in_type:ty => $out_type:ty, $fix:expr) => {
+        impl CopyAlpha<$out_type> for $in_type {
+            fn copy_alpha(src: &[Self], dst: &mut [$out_type]) {
+                for (s,d) in src.iter().zip(dst.iter_mut()) {
+                    ($fix)(s,d);
+                }
+            }
+        }
+    }
+}
+
+macro_rules! copy_alpha_nop {
+    ($in_type:ty => $out_type:ty) => {
+        impl CopyAlpha<$out_type> for $in_type {
+            fn copy_alpha(_: &[Self], _: &mut [$out_type]) {}
+        }
+    }
+}
+
+copy_alpha_nop!{ RGB8 => RGB16 }
+copy_alpha_nop!{ RGB16 => RGB16 }
+copy_alpha_impl!{ RGBA8 => RGBA16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257} }
+copy_alpha_impl!{ RGBA16 => RGBA16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a} }
+copy_alpha_nop!{ lodepng::Grey<u8> => lodepng::Grey<u16> }
+copy_alpha_nop!{ lodepng::Grey<u16> => lodepng::Grey<u16> }
+copy_alpha_impl!{ lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u8>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1 as u16 * 257} }
+copy_alpha_impl!{ lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1} }
+
 macro_rules! pixel_format {
-    ( $out_lcms_sig:expr, $in_type:ty => $out_type:ty, $in_lcms:expr => $out_lcms:expr, $fix:expr) => {
+    ( $out_lcms_sig:expr, $in_type:ty => $out_type:ty, $in_lcms:expr => $out_lcms:expr ) => {
         impl LcmsPixelFormat for $in_type {
             type Converted = $out_type;
             fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature) {
                 ($in_lcms, $out_lcms, $out_lcms_sig)
-            }
-            #[allow(unused_variables)]
-            fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]) {
-                for (s,d) in src.iter().zip(dst.iter_mut()) {
-                    ($fix)(s,d);
-                }
             }
         }
     };
 }
 
 // assumes LE CPU :(
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGB8 => RGB16,                                      PixelFormat::RGB_8 => PixelFormat::RGB_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGB16 => RGB16,                                     PixelFormat::RGB_16 => PixelFormat::RGB_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA8 => RGBA16,                                    PixelFormat::RGBA_8 => PixelFormat::RGBA_16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA16 => RGBA16,                                   PixelFormat::RGBA_16 => PixelFormat::RGBA_16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u8> => lodepng::Grey<u16>,            PixelFormat::GRAY_8 => PixelFormat::GRAY_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u16> => lodepng::Grey<u16>,           PixelFormat::GRAY_16 => PixelFormat::GRAY_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>,  PixelFormat::GRAYA_8 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u8>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1 as u16 * 257}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1}}
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGB8 => RGB16,                                      PixelFormat::RGB_8 => PixelFormat::RGB_16 }
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGB16 => RGB16,                                     PixelFormat::RGB_16 => PixelFormat::RGB_16 }
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA8 => RGBA16,                                    PixelFormat::RGBA_8 => PixelFormat::RGBA_16 }
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA16 => RGBA16,                                   PixelFormat::RGBA_16 => PixelFormat::RGBA_16 }
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u8> => lodepng::Grey<u16>,            PixelFormat::GRAY_8 => PixelFormat::GRAY_16 }
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u16> => lodepng::Grey<u16>,           PixelFormat::GRAY_16 => PixelFormat::GRAY_16 }
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>,  PixelFormat::GRAYA_8 => PixelFormat::GRAYA_16 }
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16 => PixelFormat::GRAYA_16 }
 
 trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image;
@@ -92,6 +118,7 @@ impl<T> ToSRGBImage for [T]
     where T: Copy + LcmsPixelFormat, T: std::fmt::Debug, T::Converted: std::fmt::Debug,
         Image: From<(Vec<T::Converted>, usize, usize)>,
         Image: From<(Vec<T>, usize, usize)>,
+        T: CopyAlpha<<T as LcmsPixelFormat>::Converted>
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image {
         let (format, dest_format, color_space) = T::pixel_format();
@@ -106,7 +133,7 @@ impl<T> ToSRGBImage for [T]
                 let mut dest = vec![unsafe { std::mem::zeroed() }; self.len()];
 
                 t.transform_pixels(self, &mut dest);
-                T::fix_alpha(self, &mut dest);
+                T::copy_alpha(self, &mut dest);
                 return (dest, width, height).into();
             }
         }
