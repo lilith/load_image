@@ -54,28 +54,20 @@ trait LcmsPixelFormat where Self: Copy
 {
     type Converted: Copy;
     fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature);
-    fn new_converted(arr: Vec<Self::Converted>, width: usize, height: usize) -> Image;
-    fn new_native(arr: Vec<Self>, width: usize, height: usize) -> Image;
     fn make_dest(len: usize) -> Vec<Self::Converted>;
     fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]);
 }
 
 macro_rules! pixel_format {
-    ( $out_lcms_sig:expr, $in_type:ty => $out_type:ty, $in_enum:path => $out_enum:path, $in_lcms:expr => $out_lcms:expr, $fix:expr) => {
+    ( $out_lcms_sig:expr, $in_type:ty => $out_type:ty, $in_lcms:expr => $out_lcms:expr, $fix:expr) => {
         impl LcmsPixelFormat for $in_type {
             type Converted = $out_type;
             fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature) {
                 ($in_lcms, $out_lcms, $out_lcms_sig)
             }
-            fn new_converted(arr: Vec<Self::Converted>, width: usize, height: usize) -> Image {
-                $out_enum(Bitmap::new(arr, width, height))
-            }
             fn make_dest(len: usize) -> Vec<Self::Converted> {
                 let def = unsafe { std::mem::zeroed() };
                 vec![def; len]
-            }
-            fn new_native(arr: Vec<Self>, width: usize, height: usize) -> Image {
-                $in_enum(Bitmap::new(arr, width, height))
             }
             #[allow(unused_variables)]
             fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]) {
@@ -88,21 +80,23 @@ macro_rules! pixel_format {
 }
 
 // assumes LE CPU :(
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGB8 => RGB16,                                      Image::RGB8 => Image::RGB16, PixelFormat::RGB_8 => PixelFormat::RGB_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGB16 => RGB16,                                     Image::RGB16 => Image::RGB16, PixelFormat::RGB_16 => PixelFormat::RGB_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA8 => RGBA16,                                    Image::RGBA8 => Image::RGBA16, PixelFormat::RGBA_8 => PixelFormat::RGBA_16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257}}
-pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA16 => RGBA16,                                   Image::RGBA16 => Image::RGBA16, PixelFormat::RGBA_16 => PixelFormat::RGBA_16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u8> => lodepng::Grey<u16>,            Image::GRAY8 => Image::GRAY16, PixelFormat::GRAY_8 => PixelFormat::GRAY_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u16> => lodepng::Grey<u16>,           Image::GRAY16 => Image::GRAY16, PixelFormat::GRAY_16 => PixelFormat::GRAY_16, |s,d|{}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>,  Image::GRAYA8 => Image::GRAYA16, PixelFormat::GRAYA_8 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u8>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1 as u16 * 257}}
-pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, Image::GRAYA16 => Image::GRAYA16, PixelFormat::GRAYA_16 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1}}
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGB8 => RGB16,                                      PixelFormat::RGB_8 => PixelFormat::RGB_16, |s,d|{}}
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGB16 => RGB16,                                     PixelFormat::RGB_16 => PixelFormat::RGB_16, |s,d|{}}
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA8 => RGBA16,                                    PixelFormat::RGBA_8 => PixelFormat::RGBA_16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257}}
+pixel_format!{ColorSpaceSignature::SigRgbData,  RGBA16 => RGBA16,                                   PixelFormat::RGBA_16 => PixelFormat::RGBA_16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a}}
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u8> => lodepng::Grey<u16>,            PixelFormat::GRAY_8 => PixelFormat::GRAY_16, |s,d|{}}
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u16> => lodepng::Grey<u16>,           PixelFormat::GRAY_16 => PixelFormat::GRAY_16, |s,d|{}}
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>,  PixelFormat::GRAYA_8 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u8>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1 as u16 * 257}}
+pixel_format!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16 => PixelFormat::GRAYA_16, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1}}
 
 trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image;
 }
 
 impl<T> ToSRGBImage for [T]
-    where T: Copy + LcmsPixelFormat, T: std::fmt::Debug, T::Converted: std::fmt::Debug
+    where T: Copy + LcmsPixelFormat, T: std::fmt::Debug, T::Converted: std::fmt::Debug,
+        Image: From<(Vec<T::Converted>, usize, usize)>,
+        Image: From<(Vec<T>, usize, usize)>,
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image {
         let (format, dest_format, color_space) = T::pixel_format();
@@ -117,10 +111,10 @@ impl<T> ToSRGBImage for [T]
                 let mut dest = T::make_dest(self.len());
                 t.transform_pixels(self, &mut dest);
                 T::fix_alpha(self, &mut dest);
-                return T::new_converted(dest, width, height);
+                return (dest, width, height).into();
             }
         }
-        T::new_native(self.to_owned(), width, height)
+        (self.to_owned(), width, height).into()
     }
 }
 
@@ -135,6 +129,25 @@ pub enum Image {
     GRAYA8(Bitmap<lodepng::GreyAlpha<u8>>),
     GRAYA16(Bitmap<lodepng::GreyAlpha<u16>>),
 }
+
+macro_rules! image_from_vec {
+    ($in_type:ty => $out_enum:path) => {
+        impl From<(Vec<$in_type>, usize, usize)> for Image {
+            fn from(f: (Vec<$in_type>, usize, usize)) -> Image {
+                $out_enum(Bitmap::new(f.0, f.1, f.2))
+            }
+        }
+    }
+}
+
+image_from_vec!{ RGB8 => Image::RGB8 }
+image_from_vec!{ RGBA8 => Image::RGBA8 }
+image_from_vec!{ RGB16 => Image::RGB16 }
+image_from_vec!{ RGBA16 => Image::RGBA16 }
+image_from_vec!{ lodepng::Grey<u8> => Image::GRAY8 }
+image_from_vec!{ lodepng::Grey<u16> => Image::GRAY16 }
+image_from_vec!{ lodepng::GreyAlpha<u8> => Image::GRAYA8 }
+image_from_vec!{ lodepng::GreyAlpha<u16> => Image::GRAYA16 }
 
 fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<Bitmap<T>> {
     match bitdepth {
