@@ -54,7 +54,6 @@ trait LcmsPixelFormat where Self: Copy
 {
     type Converted: Copy;
     fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature);
-    fn make_dest(len: usize) -> Vec<Self::Converted>;
     fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]);
 }
 
@@ -64,10 +63,6 @@ macro_rules! pixel_format {
             type Converted = $out_type;
             fn pixel_format() -> (PixelFormat, PixelFormat, ColorSpaceSignature) {
                 ($in_lcms, $out_lcms, $out_lcms_sig)
-            }
-            fn make_dest(len: usize) -> Vec<Self::Converted> {
-                let def = unsafe { std::mem::zeroed() };
-                vec![def; len]
             }
             #[allow(unused_variables)]
             fn fix_alpha(src: &[Self], dst: &mut [Self::Converted]) {
@@ -108,7 +103,8 @@ impl<T> ToSRGBImage for [T]
                     Profile::new_icc(include_bytes!("gray.icc")).unwrap()
                 };
                 let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-                let mut dest = T::make_dest(self.len());
+                let mut dest = vec![unsafe { std::mem::zeroed() }; self.len()];
+
                 t.transform_pixels(self, &mut dest);
                 T::fix_alpha(self, &mut dest);
                 return (dest, width, height).into();
