@@ -50,10 +50,12 @@ impl<T> Bitmap<T> {
     }
 }
 
-trait LcmsPixelConversion where Self: Copy
-{
+trait LcmsPixelFormat where Self: Copy {
+    fn pixel_format() -> (PixelFormat, ColorSpaceSignature);
+}
+
+trait LcmsPixelConversion where Self: Copy {
     type Converted: Copy;
-    fn pixel_conversion() -> (PixelFormat, PixelFormat, ColorSpaceSignature);
 }
 
 trait CopyAlpha<Converted: Copy> where Self: Copy {
@@ -90,39 +92,58 @@ copy_alpha_impl!{ lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>, |s:&lodepng
 copy_alpha_impl!{ lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1} }
 
 macro_rules! pixel_conversion {
-    ( $out_lcms_sig:expr, $in_type:ty => $out_type:ty, $in_lcms:expr => $out_lcms:expr ) => {
+    ( $in_type:ty => $out_type:ty ) => {
         impl LcmsPixelConversion for $in_type {
             type Converted = $out_type;
-            fn pixel_conversion() -> (PixelFormat, PixelFormat, ColorSpaceSignature) {
-                ($in_lcms, $out_lcms, $out_lcms_sig)
+        }
+    };
+}
+
+macro_rules! pixel_format {
+    ( $in_type:ty, $format:expr, $colorspace:expr ) => {
+        impl LcmsPixelFormat for $in_type {
+            fn pixel_format() -> (PixelFormat, ColorSpaceSignature) {
+                ($format, $colorspace)
             }
         }
     };
 }
 
 // assumes LE CPU :(
-pixel_conversion!{ColorSpaceSignature::SigRgbData,  RGB8 => RGB16,                                      PixelFormat::RGB_8 => PixelFormat::RGB_16 }
-pixel_conversion!{ColorSpaceSignature::SigRgbData,  RGB16 => RGB16,                                     PixelFormat::RGB_16 => PixelFormat::RGB_16 }
-pixel_conversion!{ColorSpaceSignature::SigRgbData,  RGBA8 => RGBA16,                                    PixelFormat::RGBA_8 => PixelFormat::RGBA_16 }
-pixel_conversion!{ColorSpaceSignature::SigRgbData,  RGBA16 => RGBA16,                                   PixelFormat::RGBA_16 => PixelFormat::RGBA_16 }
-pixel_conversion!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u8> => lodepng::Grey<u16>,            PixelFormat::GRAY_8 => PixelFormat::GRAY_16 }
-pixel_conversion!{ColorSpaceSignature::SigGrayData, lodepng::Grey<u16> => lodepng::Grey<u16>,           PixelFormat::GRAY_16 => PixelFormat::GRAY_16 }
-pixel_conversion!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>,  PixelFormat::GRAYA_8 => PixelFormat::GRAYA_16 }
-pixel_conversion!{ColorSpaceSignature::SigGrayData, lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16 => PixelFormat::GRAYA_16 }
+pixel_format!{RGB8, PixelFormat::RGB_8, ColorSpaceSignature::SigRgbData }
+pixel_format!{RGB16, PixelFormat::RGB_16, ColorSpaceSignature::SigRgbData }
+pixel_format!{RGBA8, PixelFormat::RGBA_8, ColorSpaceSignature::SigRgbData }
+pixel_format!{RGBA16, PixelFormat::RGBA_16, ColorSpaceSignature::SigRgbData }
+pixel_format!{lodepng::Grey<u8>, PixelFormat::GRAY_8, ColorSpaceSignature::SigGrayData }
+pixel_format!{lodepng::Grey<u16>, PixelFormat::GRAY_16, ColorSpaceSignature::SigGrayData }
+pixel_format!{lodepng::GreyAlpha<u8>, PixelFormat::GRAYA_8, ColorSpaceSignature::SigGrayData }
+pixel_format!{lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16, ColorSpaceSignature::SigGrayData }
+
+// assumes LE CPU :(
+pixel_conversion!{RGB8 => RGB16}
+pixel_conversion!{RGB16 => RGB16}
+pixel_conversion!{RGBA8 => RGBA16}
+pixel_conversion!{RGBA16 => RGBA16}
+pixel_conversion!{lodepng::Grey<u8> => lodepng::Grey<u16>}
+pixel_conversion!{lodepng::Grey<u16> => lodepng::Grey<u16>}
+pixel_conversion!{lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>}
+pixel_conversion!{lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>}
 
 trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image;
 }
 
 impl<T> ToSRGBImage for [T]
-    where T: Copy + LcmsPixelConversion, T: std::fmt::Debug, T::Converted: std::fmt::Debug,
+    where T: Copy + LcmsPixelFormat + LcmsPixelConversion, T: std::fmt::Debug,
+        T::Converted: Copy + LcmsPixelFormat + std::fmt::Debug,
         Image: From<(Vec<T::Converted>, usize, usize)>,
         Image: From<(Vec<T>, usize, usize)>,
         T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image {
-        let (format, dest_format, color_space) = T::pixel_conversion();
         if let Some(profile) = profile {
+            let (format, _) = T::pixel_format();
+            let (dest_format, color_space) = T::Converted::pixel_format();
             if profile.color_space() == color_space {
                 let dest_profile = if color_space == ColorSpaceSignature::SigRgbData {
                     Profile::new_srgb()
@@ -130,7 +151,7 @@ impl<T> ToSRGBImage for [T]
                     Profile::new_icc(include_bytes!("gray.icc")).unwrap()
                 };
                 let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-                let mut dest = vec![unsafe { std::mem::zeroed() }; self.len()];
+                let mut dest:Vec<T::Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
 
                 t.transform_pixels(self, &mut dest);
                 T::copy_alpha(self, &mut dest);
