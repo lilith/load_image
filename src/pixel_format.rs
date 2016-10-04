@@ -8,12 +8,14 @@ pub trait LcmsPixelFormat where Self: Copy {
 
 pub trait LcmsPixelConversion where Self: Copy {
     type Converted: Copy;
+    type ConvertedOpaque: Copy;
 }
 
 macro_rules! pixel_conversion {
-    ( $in_type:ty => $out_type:ty ) => {
+    ( $in_type:ty => $out_type:ty, $out_type_opaque:ty ) => {
         impl LcmsPixelConversion for $in_type {
             type Converted = $out_type;
+            type ConvertedOpaque = $out_type_opaque;
         }
     };
 }
@@ -39,11 +41,11 @@ pixel_format!{lodepng::GreyAlpha<u8>, PixelFormat::GRAYA_8, ColorSpaceSignature:
 pixel_format!{lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16, ColorSpaceSignature::SigGrayData }
 
 // assumes LE CPU :(
-pixel_conversion!{RGB8 => RGB16}
-pixel_conversion!{RGB16 => RGB16}
-pixel_conversion!{RGBA8 => RGBA16}
-pixel_conversion!{RGBA16 => RGBA16}
-pixel_conversion!{lodepng::Grey<u8> => lodepng::Grey<u16>}
-pixel_conversion!{lodepng::Grey<u16> => lodepng::Grey<u16>}
-pixel_conversion!{lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>}
-pixel_conversion!{lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>}
+pixel_conversion!{RGB8 => RGB16, RGB16}
+pixel_conversion!{RGB16 => RGB16, RGB16}
+pixel_conversion!{RGBA8 => RGBA16, RGB16}
+pixel_conversion!{RGBA16 => RGBA16, RGB16}
+pixel_conversion!{lodepng::Grey<u8> => lodepng::Grey<u16>, lodepng::Grey<u16>}
+pixel_conversion!{lodepng::Grey<u16> => lodepng::Grey<u16>, lodepng::Grey<u16>}
+pixel_conversion!{lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>, lodepng::Grey<u16>}
+pixel_conversion!{lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, lodepng::Grey<u16>}

@@ -1,4 +1,3 @@
-
 extern crate lodepng;
 extern crate lcms2;
 extern crate mozjpeg;
@@ -51,32 +50,44 @@ copy_alpha_impl!{ lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>, |s:&lodepng
 copy_alpha_impl!{ lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1} }
 
 trait ToSRGBImage {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image;
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image;
 }
 
 impl<T> ToSRGBImage for [T]
-    where T: Copy + LcmsPixelFormat + LcmsPixelConversion, T: std::fmt::Debug,
-        T::Converted: Copy + LcmsPixelFormat + std::fmt::Debug,
-        Image: From<SizedVec<T::Converted>>,
+    where T: LcmsPixelFormat + LcmsPixelConversion,
+        T::Converted: LcmsPixelFormat,
+        T::ConvertedOpaque: LcmsPixelFormat,
         Image: From<SizedVec<T>>,
+        Image: From<SizedVec<T::Converted>>,
+        Image: From<SizedVec<T::ConvertedOpaque>>,
         T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image {
         if let Some(profile) = profile {
-            let (format, _) = T::pixel_format();
-            let (dest_format, color_space) = T::Converted::pixel_format();
+            let (_, color_space) = T::Converted::pixel_format();
             if profile.color_space() == color_space {
                 let dest_profile = if color_space == ColorSpaceSignature::SigRgbData {
                     Profile::new_srgb()
                 } else {
                     Profile::new_icc(include_bytes!("gray.icc")).unwrap()
                 };
-                let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-                let mut dest:Vec<T::Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
+                let (format, _) = T::pixel_format();
+                if opaque {
+                    let (dest_format, _) = T::ConvertedOpaque::pixel_format();
+                    let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
+                    let mut dest:Vec<T::ConvertedOpaque> = vec![unsafe { std::mem::zeroed() }; self.len()];
 
-                t.transform_pixels(self, &mut dest);
-                T::copy_alpha(self, &mut dest);
-                return (dest, width, height).into();
+                    t.transform_pixels(self, &mut dest);
+                    return (dest, width, height).into();
+                } else {
+                    let (dest_format, _) = T::Converted::pixel_format();
+                    let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
+                    let mut dest:Vec<T::Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
+
+                    t.transform_pixels(self, &mut dest);
+                    T::copy_alpha(self, &mut dest);
+                    return (dest, width, height).into();
+                }
             }
         }
         (self.to_owned(), width, height).into()
@@ -131,7 +142,7 @@ fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, heig
     }
 }
 
-fn load_png(mut state: lodepng::State, res: lodepng::Image) -> Result<Image, lodepng::Error> {
+fn load_png(mut state: lodepng::State, res: lodepng::Image, opaque: bool) -> Result<Image, lodepng::Error> {
 
     let profile = if state.info_png().get("sRGB").is_some() {
         None
@@ -142,21 +153,21 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image) -> Result<Image, lod
     };
 
     match res {
-        lodepng::Image::RGBA(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height)),
-        lodepng::Image::RGB(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height)),
-        lodepng::Image::RGB16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height)),
-        lodepng::Image::RGBA16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height)),
-        lodepng::Image::Grey(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height)),
-        lodepng::Image::Grey16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height)),
-        lodepng::Image::GreyAlpha(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height)),
-        lodepng::Image::GreyAlpha16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height)),
+        lodepng::Image::RGBA(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::RGB(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::RGB16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::RGBA16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::Grey(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::Grey16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::GreyAlpha(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque)),
+        lodepng::Image::GreyAlpha16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque)),
         lodepng::Image::RawData(rawdata) => {
             let mut png = state.info_raw_mut();
             let depth = png.bitdepth as u8;
             if png.colortype() == lodepng::LCT_PALETTE {
                 let pal = png.palette_mut();
                 let ncolors = pal.len();
-                return match pal.to_image(profile, 1, ncolors) {
+                return match pal.to_image(profile, 1, ncolors, opaque) {
                     Image::RGBA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA8).ok_or(lodepng::Error(59)),
                     Image::RGBA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA16).ok_or(lodepng::Error(59)),
                     _ => Err(lodepng::Error(59)),
@@ -167,7 +178,7 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image) -> Result<Image, lod
     }
 }
 
-pub fn load_image(path: &str) -> Result<Image, lodepng::Error> {
+pub fn load_image(path: &str, opaque: bool) -> Result<Image, lodepng::Error> {
     let data = match path {
         "-" => {
             let mut data = Vec::new();
@@ -182,7 +193,7 @@ pub fn load_image(path: &str) -> Result<Image, lodepng::Error> {
     state.remember_unknown_chunks(true);
 
     match state.decode(&data) {
-        Ok(img) => load_png(state, img),
+        Ok(img) => load_png(state, img, opaque),
         _ => {
             let mut dinfo = mozjpeg::Decompress::new();
             dinfo.set_mem_src(&data[..]);
@@ -203,11 +214,11 @@ pub fn load_image(path: &str) -> Result<Image, lodepng::Error> {
             match dinfo.out_color_space() {
                 mozjpeg::ColorSpace::JCS_RGB => {
                     let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
-                    Ok(rgb.to_image(profile, width, height))
+                    Ok(rgb.to_image(profile, width, height, opaque))
                 },
                 mozjpeg::ColorSpace::JCS_GRAYSCALE => {
                     let mut g: Vec<lodepng::Grey<u8>> = dinfo.read_scanlines().unwrap();
-                    Ok(g.to_image(profile, width, height))
+                    Ok(g.to_image(profile, width, height, opaque))
                 },
                 _ => Err(lodepng::Error(59)),
             }
@@ -250,11 +261,12 @@ fn compare(left: &Image, right: &Image) -> f64 {
 
 #[test]
 fn image_gray() {
-    let g0 = load_image("tests/gray1-rgba16.png").unwrap();
-    let g1 = load_image("tests/gray1-rgba.png").unwrap();
-    let g2 = load_image("tests/gray1-pal.png").unwrap();
-    let g3 = load_image("tests/gray1-gray.png").unwrap();
-    let g4 = load_image("tests/gray1.jpg").unwrap();
+    let g0 = load_image("tests/gray1-rgba16.png", false).unwrap();
+    let g1 = load_image("tests/gray1-rgba.png", false).unwrap();
+    let g2 = load_image("tests/gray1-pal.png", false).unwrap();
+    let g3 = load_image("tests/gray1-gray.png", false).unwrap();
+    let g4 = load_image("tests/gray1.jpg", false).unwrap();
+    let g5 = load_image("tests/gray1-rgba.png", true).unwrap();
 
     let diff = compare(&g0, &g1);
     assert!(diff < 0.00001, "{}", diff);
@@ -267,14 +279,25 @@ fn image_gray() {
 
     let diff = compare(&g1, &g4);
     assert!(diff < 0.00006, "{}", diff);
+
+    let diff = compare(&g4, &g5);
+    assert!(diff < 0.00006, "{}", diff);
+
+    let diff = compare(&g1, &g5);
+    assert!(diff < 0.00001, "{}", diff);
+
+    match (g1, g5) {
+        (Image::RGBA16(_), Image::RGB16(_)) => {},
+        _ => panic!("opaque flag is supposed to return non-alpha type"),
+    }
 }
 
 #[test]
 fn image_gray_profile() {
 
-    let gp1 = load_image("tests/gray-profile.png").unwrap();
-    let gp2 = load_image("tests/gray-profile2.png").unwrap();
-    let gp3 = load_image("tests/gray-profile.jpg").unwrap();
+    let gp1 = load_image("tests/gray-profile.png", false).unwrap();
+    let gp2 = load_image("tests/gray-profile2.png", false).unwrap();
+    let gp3 = load_image("tests/gray-profile.jpg", false).unwrap();
 
     let diff = compare(&gp1, &gp2);
     assert!(diff < 0.0003, "{}", diff);
@@ -286,16 +309,16 @@ fn image_gray_profile() {
 #[test]
 fn image_load1() {
 
-    let prof_jpg = load_image("tests/profile.jpg").unwrap();
-    let prof_png = load_image("tests/profile.png").unwrap();
+    let prof_jpg = load_image("tests/profile.jpg", false).unwrap();
+    let prof_png = load_image("tests/profile.png", false).unwrap();
     let diff = compare(&prof_jpg, &prof_png);
     assert!(diff <= 0.002);
 
-    let strip_jpg = load_image("tests/profile-stripped.jpg").unwrap();
+    let strip_jpg = load_image("tests/profile-stripped.jpg", false).unwrap();
     let diff = compare(&strip_jpg, &prof_jpg);
     assert!(diff > 0.002, "{}", diff);
 
-    let strip_png = load_image("tests/profile-stripped.png").unwrap();
+    let strip_png = load_image("tests/profile-stripped.png", false).unwrap();
     let diff = compare(&strip_jpg, &strip_png);
     assert!(diff > 0.002, "{}", diff);
 }

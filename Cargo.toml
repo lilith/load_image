@@ -4,7 +4,7 @@ description = "Load PNG or JPEG"
 keywords = ["load_image"]
 license = "AGPL-3.0"
 name = "load_image"
-version = "1.0.1"
+version = "1.1.0"
 publish = false
 
 [dependencies]
