@@ -1,3 +1,4 @@
+pub type SizedVec<T> = (Vec<T>, usize, usize);
 
 #[derive(Debug)]
 pub struct Bitmap<T> {

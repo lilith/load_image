@@ -57,8 +57,8 @@ trait ToSRGBImage {
 impl<T> ToSRGBImage for [T]
     where T: Copy + LcmsPixelFormat + LcmsPixelConversion, T: std::fmt::Debug,
         T::Converted: Copy + LcmsPixelFormat + std::fmt::Debug,
-        Image: From<(Vec<T::Converted>, usize, usize)>,
-        Image: From<(Vec<T>, usize, usize)>,
+        Image: From<SizedVec<T::Converted>>,
+        Image: From<SizedVec<T>>,
         T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize) -> Image {
@@ -97,8 +97,8 @@ pub enum Image {
 
 macro_rules! image_from_vec {
     ($in_type:ty => $out_enum:path) => {
-        impl From<(Vec<$in_type>, usize, usize)> for Image {
-            fn from(f: (Vec<$in_type>, usize, usize)) -> Image {
+        impl From<SizedVec<$in_type>> for Image {
+            fn from(f: SizedVec<$in_type>) -> Image {
                 $out_enum(Bitmap::new(f.0, f.1, f.2))
             }
         }
