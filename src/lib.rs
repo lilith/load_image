@@ -53,6 +53,10 @@ trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image;
 }
 
+trait Convertible<Converted: Copy> {
+    fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>>;
+}
+
 impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
         T::Converted: LcmsPixelFormat,
@@ -64,33 +68,45 @@ impl<T> ToSRGBImage for [T]
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image {
         if let Some(profile) = profile {
-            let (_, color_space) = T::Converted::pixel_format();
-            if profile.color_space() == color_space {
-                let dest_profile = if color_space == ColorSpaceSignature::SigRgbData {
-                    Profile::new_srgb()
-                } else {
-                    Profile::new_icc(include_bytes!("gray.icc")).unwrap()
-                };
-                let (format, _) = T::pixel_format();
-                if opaque {
-                    let (dest_format, _) = T::ConvertedOpaque::pixel_format();
-                    let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-                    let mut dest:Vec<T::ConvertedOpaque> = vec![unsafe { std::mem::zeroed() }; self.len()];
-
-                    t.transform_pixels(self, &mut dest);
-                    return (dest, width, height).into();
-                } else {
-                    let (dest_format, _) = T::Converted::pixel_format();
-                    let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-                    let mut dest:Vec<T::Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
-
-                    t.transform_pixels(self, &mut dest);
-                    T::copy_alpha(self, &mut dest);
-                    return (dest, width, height).into();
+            if opaque {
+                let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
+                if let Some(pixels) = converted {
+                    return (pixels, width, height).into();
+                }
+            } else {
+                let converted: Option<Vec<T::Converted>> = self.apply_profile(profile);
+                if let Some(mut pixels) = converted {
+                    T::copy_alpha(self, &mut pixels);
+                    return (pixels, width, height).into();
                 }
             }
         }
         (self.to_owned(), width, height).into()
+    }
+}
+
+impl<T, Converted> Convertible<Converted> for [T]
+    where T: Copy + LcmsPixelFormat,
+    Converted: Copy + LcmsPixelFormat,
+    Image: From<SizedVec<Converted>>,
+{
+    fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>> {
+        let (format, color_space) = T::pixel_format();
+        let (dest_format, _) = Converted::pixel_format();
+        if profile.color_space() != color_space {
+            return None;
+        }
+        let dest_profile = if color_space == ColorSpaceSignature::SigRgbData {
+            Profile::new_srgb()
+        } else {
+            Profile::new_icc(include_bytes!("gray.icc")).unwrap()
+        };
+
+        let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
+        let mut dest:Vec<Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
+
+        t.transform_pixels(self, &mut dest);
+        return Some(dest);
     }
 }
 
