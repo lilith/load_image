@@ -59,8 +59,8 @@ trait Convertible<Converted: Copy> {
 
 impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
-        T::Converted: LcmsPixelFormat,
-        T::ConvertedOpaque: LcmsPixelFormat,
+        T::Converted: LcmsPixelFormat + Default,
+        T::ConvertedOpaque: LcmsPixelFormat + Default,
         Image: From<SizedVec<T>>,
         Image: From<SizedVec<T::Converted>>,
         Image: From<SizedVec<T::ConvertedOpaque>>,
@@ -87,7 +87,7 @@ impl<T> ToSRGBImage for [T]
 
 impl<T, Converted> Convertible<Converted> for [T]
     where T: Copy + LcmsPixelFormat,
-    Converted: Copy + LcmsPixelFormat,
+    Converted: Copy + LcmsPixelFormat + Default,
     Image: From<SizedVec<Converted>>,
 {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>> {
@@ -103,7 +103,7 @@ impl<T, Converted> Convertible<Converted> for [T]
         };
 
         let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-        let mut dest:Vec<Converted> = vec![unsafe { std::mem::zeroed() }; self.len()];
+        let mut dest:Vec<Converted> = vec![Default::default(); self.len()];
 
         t.transform_pixels(self, &mut dest);
         return Some(dest);

@@ -74,7 +74,7 @@ impl<M> GammaPixel for RGB<M> where M: GammaComponent {
     }
 }
 
-impl<M> GammaPixel for lodepng::GreyAlpha<M> where M: Clone + Into<f32> + GammaComponent {
+impl<M> GammaPixel for lodepng::GreyAlpha<M> where M: Copy + Clone + Into<f32> + GammaComponent {
     type Component = M;
     type Output = RGBAPLU;
     fn to_linear(&self, gamma_lut: &[f32]) -> RGBAPLU {
@@ -97,7 +97,7 @@ impl<M> GammaPixel for M where M: GammaComponent {
     }
 }
 
-impl<M> GammaPixel for lodepng::Grey<M> where M: GammaComponent {
+impl<M> GammaPixel for lodepng::Grey<M> where M: Copy + Clone + GammaComponent {
     type Component = M;
     type Output = RGBAPLU;
     fn to_linear(&self, gamma_lut: &[f32]) -> RGBAPLU {
