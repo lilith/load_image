@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+
 extern crate lodepng;
 extern crate lcms2;
 extern crate mozjpeg;
@@ -23,6 +25,7 @@ trait CopyAlpha<Converted: Copy> where Self: Copy {
 macro_rules! copy_alpha_impl {
     ($in_type:ty => $out_type:ty, $fix:expr) => {
         impl CopyAlpha<$out_type> for $in_type {
+            #[allow(redundant_closure_call)]
             fn copy_alpha(src: &[Self], dst: &mut [$out_type]) {
                 for (s,d) in src.iter().zip(dst.iter_mut()) {
                     ($fix)(s,d);
@@ -106,7 +109,7 @@ impl<T, Converted> Convertible<Converted> for [T]
         let mut dest:Vec<Converted> = vec![Default::default(); self.len()];
 
         t.transform_pixels(self, &mut dest);
-        return Some(dest);
+        Some(dest)
     }
 }
 
