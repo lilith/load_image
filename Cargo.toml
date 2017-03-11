@@ -10,8 +10,8 @@ publish = false
 [dependencies]
 file = "0.1.0"
 lcms2 = "1.0.0"
-lodepng = "0.12.3"
-rgb = "0.5.0"
+lodepng = "1.0.1"
+rgb = "0.5.6"
 
 [dependencies.mozjpeg]
 path = "../mozjpeg-rust"
