@@ -201,10 +201,10 @@ pub fn load_image(path: &str, opaque: bool) -> Result<Image, lodepng::Error> {
     let data = match path {
         "-" => {
             let mut data = Vec::new();
-            try!(std::io::stdin().read_to_end(&mut data));
+            std::io::stdin().read_to_end(&mut data)?;
             data
         },
-        path => try!(file::get(path)),
+        path => file::get(path)?,
     };
 
     let mut state = lodepng::State::new();
