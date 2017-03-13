@@ -342,3 +342,12 @@ fn image_load1() {
     let diff = compare(&strip_jpg, &strip_png);
     assert!(diff > 0.002, "{}", diff);
 }
+
+#[test]
+fn image_load2() {
+
+    let im1 = load_image("tests/tile1.png", false).unwrap();
+    let im2 = load_image("tests/tile2.png", false).unwrap();
+    let diff = compare(&im1, &im2);
+    assert!(diff <= 0.00002);
+}
