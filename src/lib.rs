@@ -212,37 +212,37 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
     state.color_convert(false);
     state.remember_unknown_chunks(true);
 
-    match state.decode(&data) {
-        Ok(img) => load_png(state, img, opaque),
-        _ => {
-            let mut dinfo = mozjpeg::Decompress::new();
-            dinfo.set_mem_src(&data[..]);
-            dinfo.save_marker(mozjpeg::Marker::APP(2));
-            assert!(dinfo.read_header(true));
-            assert!(dinfo.start_decompress());
-            let width = dinfo.output_width();
-            let height = dinfo.output_height();
+    if data.starts_with(b"\x89PNG") {
+        let img = state.decode(&data)?;
+        load_png(state, img, opaque)
+    }  else {
+        let mut dinfo = mozjpeg::Decompress::new();
+        dinfo.set_mem_src(&data[..]);
+        dinfo.save_marker(mozjpeg::Marker::APP(2));
+        assert!(dinfo.read_header(true));
+        assert!(dinfo.start_decompress());
+        let width = dinfo.output_width();
+        let height = dinfo.output_height();
 
-            let profile = if let Some(marker) = dinfo.markers().next() {
-                let data = marker.data;
-                if b"ICC_PROFILE\0" == &data[0..12] {
-                    let icc = &data[14..];
-                    Profile::new_icc(icc)
-                } else {None}
-            } else {None};
+        let profile = if let Some(marker) = dinfo.markers().next() {
+            let data = marker.data;
+            if b"ICC_PROFILE\0" == &data[0..12] {
+                let icc = &data[14..];
+                Profile::new_icc(icc)
+            } else {None}
+        } else {None};
 
-            match dinfo.out_color_space() {
-                mozjpeg::ColorSpace::JCS_RGB => {
-                    let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
-                    Ok(rgb.to_image(profile, width, height, opaque))
-                },
-                mozjpeg::ColorSpace::JCS_GRAYSCALE => {
-                    let mut g: Vec<lodepng::Grey<u8>> = dinfo.read_scanlines().unwrap();
-                    Ok(g.to_image(profile, width, height, opaque))
-                },
-                _ => Err(lodepng::Error(59)),
-            }
-        },
+        match dinfo.out_color_space() {
+            mozjpeg::ColorSpace::JCS_RGB => {
+                let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
+                Ok(rgb.to_image(profile, width, height, opaque))
+            },
+            mozjpeg::ColorSpace::JCS_GRAYSCALE => {
+                let mut g: Vec<lodepng::Grey<u8>> = dinfo.read_scanlines().unwrap();
+                Ok(g.to_image(profile, width, height, opaque))
+            },
+            _ => Err(lodepng::Error(59)),
+        }
     }
 }
 
