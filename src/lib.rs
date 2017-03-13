@@ -149,10 +149,10 @@ fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, heig
     match bitdepth {
         8 => Some(Bitmap::new(buf.iter().map(|&c| pal[c as usize]).collect(), width, height)),
         depth @ 1 | depth @ 2 | depth @ 4 => {
-            let pixels = 8 / depth;
-            let mask = depth - 1;
+            let px_per_byte = 8 / depth;
+            let mask = (1<<depth) - 1;
             Some(Bitmap::new(buf.iter()
-                                 .flat_map(|c| (0..pixels).rev().map(move |n| pal[(c >> (n * depth) & mask) as usize]))
+                                 .flat_map(|c| (0..px_per_byte).rev().map(move |n| pal[(c >> (n * depth) & mask) as usize]))
                                  .take(width * height)
                                  .collect(),
                              width,
