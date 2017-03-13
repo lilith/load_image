@@ -10,8 +10,9 @@ mod pixel_format;
 mod bitmap;
 mod endian;
 
-use pixel_format::*;
 use std::io::Read;
+use std::path::Path;
+use pixel_format::*;
 use lcms2::*;
 use rgb::*;
 use bitmap::*;
@@ -197,14 +198,14 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image, opaque: bool) -> Res
     }
 }
 
-pub fn load_image(path: &str, opaque: bool) -> Result<Image, lodepng::Error> {
-    let data = match path {
-        "-" => {
-            let mut data = Vec::new();
-            std::io::stdin().read_to_end(&mut data)?;
-            data
-        },
-        path => file::get(path)?,
+pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {
+    let path = path.as_ref();
+    let data = if path.as_os_str() == "-" {
+        let mut data = Vec::new();
+        std::io::stdin().read_to_end(&mut data)?;
+        data
+    } else {
+        file::get(path)?
     };
 
     let mut state = lodepng::State::new();
