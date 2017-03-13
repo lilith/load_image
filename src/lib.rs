@@ -61,6 +61,14 @@ trait Convertible<Converted: Copy> {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>>;
 }
 
+impl ToSRGBImage for Vec<CMYK> {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool) -> Image {
+        let profile = profile.unwrap_or_else(|| Profile::new_icc(include_bytes!("cmyk.icc")).unwrap());
+        let converted: Option<Vec<<pixel_format::CMYK as LcmsPixelConversion>::Converted>> = self.apply_profile(profile);
+        return (converted.unwrap(), width, height).into();
+    }
+}
+
 impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
         T::Converted: LcmsPixelFormat + Default,
@@ -237,6 +245,10 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
                 let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
                 Ok(rgb.to_image(profile, width, height, opaque))
             },
+            mozjpeg::ColorSpace::JCS_CMYK => {
+                let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
+                Ok(rgb.to_image(profile, width, height, opaque))
+            },
             mozjpeg::ColorSpace::JCS_GRAYSCALE => {
                 let mut g: Vec<lodepng::Grey<u8>> = dinfo.read_scanlines().unwrap();
                 Ok(g.to_image(profile, width, height, opaque))
@@ -344,10 +356,19 @@ fn image_load1() {
 }
 
 #[test]
-fn image_load2() {
+fn image_4bit() {
 
     let im1 = load_image("tests/tile1.png", false).unwrap();
     let im2 = load_image("tests/tile2.png", false).unwrap();
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.00002);
+}
+
+#[test]
+fn image_cmyk() {
+
+    let im1 = load_image("tests/cmyk.png", true).unwrap();
+    let im2 = load_image("tests/cmyk.jpg", true).unwrap();
+    let diff = compare(&im1, &im2);
+    assert!(diff <= 0.002);
 }

@@ -2,6 +2,15 @@ use lcms2::*;
 use rgb::*;
 extern crate lodepng;
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub struct CMYK {
+    pub c: u8,
+    pub m: u8,
+    pub y: u8,
+    pub k: u8,
+}
+
 pub trait LcmsPixelFormat where Self: Copy {
     fn pixel_format() -> (PixelFormat, ColorSpaceSignature);
 }
@@ -29,6 +38,9 @@ macro_rules! pixel_format {
         }
     };
 }
+
+pixel_format!{CMYK, PixelFormat::CMYK_8_REV, ColorSpaceSignature::SigCmykData }
+pixel_conversion!{CMYK => RGB16, RGB16}
 
 pixel_format!{RGB8, PixelFormat::RGB_8, ColorSpaceSignature::SigRgbData }
 pixel_format!{RGBA8, PixelFormat::RGBA_8, ColorSpaceSignature::SigRgbData }
