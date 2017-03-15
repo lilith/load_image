@@ -228,6 +228,7 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
 
     let mut state = lodepng::State::new();
     state.color_convert(false);
+    state.read_text_chunks(false);
     state.remember_unknown_chunks(true);
 
     if data.starts_with(b"\x89PNG") {
