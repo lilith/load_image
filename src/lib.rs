@@ -63,8 +63,14 @@ trait Convertible<Converted: Copy> {
 
 impl ToSRGBImage for Vec<CMYK> {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool) -> Image {
-        let profile = profile.unwrap_or_else(|| Profile::new_icc(include_bytes!("cmyk.icc")).unwrap());
-        let converted: Option<Vec<<pixel_format::CMYK as LcmsPixelConversion>::Converted>> = self.apply_profile(profile);
+        let converted: Option<Vec<<pixel_format::CMYK as LcmsPixelConversion>::Converted>>;
+        // The image may be CMYK, but lack any profile
+        // The image may be CMYK, but with an RGB profile
+        // The image may be CMYK with CMYK profile, but the profile may not work with LCMS
+        // So in all cases fall back to a known good profile, since profile-less CMYK is bogus.
+        converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
+            self.apply_profile(Profile::new_icc(include_bytes!("cmyk.icc")).unwrap())
+        });
         return (converted.unwrap(), width, height).into();
     }
 }
