@@ -120,11 +120,15 @@ impl<T, Converted> Convertible<Converted> for [T]
             Profile::new_srgb()
         };
 
-        let t = Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric);
-        let mut dest:Vec<Converted> = vec![Default::default(); self.len()];
+        match Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric) {
+            Ok(t) => {
+                let mut dest:Vec<Converted> = vec![Default::default(); self.len()];
 
-        t.transform_pixels(self, &mut dest);
-        Some(dest)
+                t.transform_pixels(self, &mut dest);
+                Some(dest)
+            }
+            _ => None
+        }
     }
 }
 
@@ -181,7 +185,7 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image, opaque: bool) -> Res
     let profile = if state.info_png().get("sRGB").is_some() {
         None
     } else if let Ok(iccp) = state.get_icc() {
-        Profile::new_icc(iccp.as_ref())
+        Profile::new_icc(iccp.as_ref()).ok()
     } else {
         None
     };
@@ -242,7 +246,7 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
             let data = marker.data;
             if b"ICC_PROFILE\0" == &data[0..12] {
                 let icc = &data[14..];
-                Profile::new_icc(icc)
+                Profile::new_icc(icc).ok()
             } else {None}
         } else {None};
 
