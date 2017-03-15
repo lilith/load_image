@@ -396,5 +396,24 @@ fn image_cmyk() {
 
 #[test]
 fn image_bw() {
-    load_image("tests/1bit.png", true).unwrap();
+    load_image("tests/1bit.png", false).unwrap();
+}
+
+#[test]
+fn pngtestsuite() {
+    for entry in std::fs::read_dir("tests/pngtestsuite").unwrap().filter_map(|p|p.ok()) {
+        let path = entry.path();
+        let filenamestr = path.file_name().unwrap().to_string_lossy();
+        // ignore signature test, since fallback for jpeg panics
+        // ignore checksum check, since lodepng doesn't do it
+        if !filenamestr.ends_with(".png") || filenamestr.starts_with("xs") || filenamestr.starts_with("xcs") {
+            continue;
+        }
+        let res = load_image(&path, false);
+        if filenamestr.starts_with("x") {
+            assert!(res.is_err());
+        } else {
+            res.unwrap();
+        }
+    }
 }
