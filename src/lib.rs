@@ -202,16 +202,26 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image, opaque: bool) -> Res
         lodepng::Image::RawData(rawdata) => {
             let mut png = state.info_raw_mut();
             let depth = png.bitdepth as u8;
-            if png.colortype() == lodepng::LCT_PALETTE {
-                let pal = png.palette_mut();
-                let ncolors = pal.len();
-                return match pal.to_image(profile, 1, ncolors, opaque) {
-                    Image::RGBA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA8).ok_or(lodepng::Error(59)),
-                    Image::RGBA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA16).ok_or(lodepng::Error(59)),
-                    _ => Err(lodepng::Error(59)),
-                };
+            let pal = match png.colortype() {
+                lodepng::LCT_PALETTE => {
+                    let pal = png.palette_mut();
+                    let ncolors = pal.len();
+                    pal.to_image(profile, 1, ncolors, opaque)
+                },
+                lodepng::LCT_GREY => {
+                    let ncolors = 1<<depth;
+                    let max = ncolors-1;
+                    let mut graypal: Vec<_> = (0..ncolors).map(|c| lodepng::Grey((c*255/max) as u8)).collect();
+                    graypal.to_image(profile, 1, ncolors, opaque)
+                },
+                _ => return Err(lodepng::Error(59))
+            };
+            match pal {
+                Image::RGBA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA8).ok_or(lodepng::Error(59)),
+                Image::RGBA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA16).ok_or(lodepng::Error(59)),
+                Image::GRAY8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAY8).ok_or(lodepng::Error(59)),
+                _ => Err(lodepng::Error(59))
             }
-            Err(lodepng::Error(59))
         },
     }
 }
@@ -382,4 +392,9 @@ fn image_cmyk() {
     let im2 = load_image("tests/cmyk.jpg", true).unwrap();
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.002);
+}
+
+#[test]
+fn image_bw() {
+    load_image("tests/1bit.png", true).unwrap();
 }
