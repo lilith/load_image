@@ -235,18 +235,21 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
     } else {
         file::get(path)?
     };
+    load_image_data(&data, opaque)
+}
 
+pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
     let mut state = lodepng::State::new();
     state.color_convert(false);
     state.read_text_chunks(false);
     state.remember_unknown_chunks(true);
 
     if data.starts_with(b"\x89PNG") {
-        let img = state.decode(&data)?;
+        let img = state.decode(data)?;
         load_png(state, img, opaque)
     }  else {
         let mut dinfo = mozjpeg::Decompress::new();
-        dinfo.set_mem_src(&data[..]);
+        dinfo.set_mem_src(data);
         dinfo.save_marker(mozjpeg::Marker::APP(2));
         assert!(dinfo.read_header(true));
         assert!(dinfo.start_decompress());
@@ -271,7 +274,7 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
                 Ok(rgb.to_image(profile, width, height, opaque))
             },
             mozjpeg::ColorSpace::JCS_GRAYSCALE => {
-                let mut g: Vec<lodepng::Grey<u8>> = dinfo.read_scanlines().unwrap();
+                let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
                 Ok(g.to_image(profile, width, height, opaque))
             },
             _ => Err(lodepng::Error(59)),
