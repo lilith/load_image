@@ -1,6 +1,5 @@
 use lcms2::*;
-use rgb::*;
-extern crate lodepng;
+use super::*;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]

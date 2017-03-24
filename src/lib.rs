@@ -18,6 +18,10 @@ use rgb::*;
 use bitmap::*;
 use endian::*;
 
+pub type GRAY8 = lodepng::Grey<u8>;
+pub type GRAY16 = lodepng::Grey<u16>;
+pub type GRAYA8 = lodepng::GreyAlpha<u8>;
+pub type GRAYA16 = lodepng::GreyAlpha<u16>;
 
 trait CopyAlpha<Converted: Copy> where Self: Copy {
     fn copy_alpha(src: &[Self], dst: &mut [Converted]);
@@ -48,10 +52,10 @@ copy_alpha_nop!{ RGB8 => RGB16 }
 copy_alpha_nop!{ RGB16 => RGB16 }
 copy_alpha_impl!{ RGBA8 => RGBA16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257} }
 copy_alpha_impl!{ RGBA16 => RGBA16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a} }
-copy_alpha_nop!{ lodepng::Grey<u8> => lodepng::Grey<u16> }
-copy_alpha_nop!{ lodepng::Grey<u16> => lodepng::Grey<u16> }
-copy_alpha_impl!{ lodepng::GreyAlpha<u8> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u8>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1 as u16 * 257} }
-copy_alpha_impl!{ lodepng::GreyAlpha<u16> => lodepng::GreyAlpha<u16>, |s:&lodepng::GreyAlpha<u16>,d:&mut lodepng::GreyAlpha<u16>|{d.1 = s.1} }
+copy_alpha_nop!{ GRAY8 => GRAY16 }
+copy_alpha_nop!{ GRAY16 => GRAY16 }
+copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = s.1 as u16 * 257} }
+copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
 trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image;
@@ -138,10 +142,10 @@ pub enum Image {
     RGBA8(Bitmap<RGBA8>),
     RGB16(Bitmap<RGB16>),
     RGBA16(Bitmap<RGBA16>),
-    GRAY8(Bitmap<lodepng::Grey<u8>>),
-    GRAY16(Bitmap<lodepng::Grey<u16>>),
-    GRAYA8(Bitmap<lodepng::GreyAlpha<u8>>),
-    GRAYA16(Bitmap<lodepng::GreyAlpha<u16>>),
+    GRAY8(Bitmap<GRAY8>),
+    GRAY16(Bitmap<GRAY16>),
+    GRAYA8(Bitmap<GRAYA8>),
+    GRAYA16(Bitmap<GRAYA16>),
 }
 
 macro_rules! image_from_vec {
@@ -158,10 +162,10 @@ image_from_vec!{ RGB8 => Image::RGB8 }
 image_from_vec!{ RGBA8 => Image::RGBA8 }
 image_from_vec!{ RGB16 => Image::RGB16 }
 image_from_vec!{ RGBA16 => Image::RGBA16 }
-image_from_vec!{ lodepng::Grey<u8> => Image::GRAY8 }
-image_from_vec!{ lodepng::Grey<u16> => Image::GRAY16 }
-image_from_vec!{ lodepng::GreyAlpha<u8> => Image::GRAYA8 }
-image_from_vec!{ lodepng::GreyAlpha<u16> => Image::GRAYA16 }
+image_from_vec!{ GRAY8 => Image::GRAY8 }
+image_from_vec!{ GRAY16 => Image::GRAY16 }
+image_from_vec!{ GRAYA8 => Image::GRAYA8 }
+image_from_vec!{ GRAYA16 => Image::GRAYA16 }
 
 fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<Bitmap<T>> {
     match bitdepth {

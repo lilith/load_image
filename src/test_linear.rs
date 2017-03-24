@@ -1,7 +1,6 @@
 
 pub type RGBAPLU = RGBA<f32>;
-use rgb::*;
-extern crate lodepng;
+use super::*;
 
 pub trait GammaComponent {
     fn max_value() -> usize;
