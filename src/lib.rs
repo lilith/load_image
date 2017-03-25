@@ -221,10 +221,14 @@ fn load_png(mut state: lodepng::State, res: lodepng::Image, opaque: bool) -> Res
                 _ => return Err(lodepng::Error(59))
             };
             match pal {
+                Image::RGB8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGB8).ok_or(lodepng::Error(59)),
                 Image::RGBA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA8).ok_or(lodepng::Error(59)),
+                Image::RGB16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGB16).ok_or(lodepng::Error(59)),
                 Image::RGBA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA16).ok_or(lodepng::Error(59)),
                 Image::GRAY8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAY8).ok_or(lodepng::Error(59)),
-                _ => Err(lodepng::Error(59))
+                Image::GRAYA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAYA8).ok_or(lodepng::Error(59)),
+                Image::GRAY16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAY16).ok_or(lodepng::Error(59)),
+                Image::GRAYA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAYA16).ok_or(lodepng::Error(59)),
             }
         },
     }
