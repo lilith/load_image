@@ -37,16 +37,17 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
         }
     };
 
+    use mozjpeg::ColorSpace::*;
     match dinfo.out_color_space() {
-        mozjpeg::ColorSpace::JCS_RGB => {
+        JCS_RGB => {
             let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
             Ok(rgb.to_image(profile, width, height, true))
         },
-        mozjpeg::ColorSpace::JCS_CMYK => {
+        JCS_CMYK => {
             let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
             Ok(rgb.to_image(profile, width, height, true))
         },
-        mozjpeg::ColorSpace::JCS_GRAYSCALE => {
+        JCS_GRAYSCALE => {
             let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
             Ok(g.to_image(profile, width, height, true))
         },
