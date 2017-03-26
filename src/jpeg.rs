@@ -15,13 +15,27 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
     let width = dinfo.output_width();
     let height = dinfo.output_height();
 
-    let profile = if let Some(marker) = dinfo.markers().next() {
-        let data = marker.data;
-        if b"ICC_PROFILE\0" == &data[0..12] {
-            let icc = &data[14..];
-            Profile::new_icc(icc).ok()
-        } else {None}
-    } else {None};
+    let profile = {
+        let mut profile_markers = Vec::new();
+        for m in dinfo.markers() {
+            let data = m.data;
+            if m.marker == mozjpeg::Marker::APP(2) &&
+                data.len() > 14 && data[12] <= data[13] &&
+                b"ICC_PROFILE\0" == &data[0..12] {
+                profile_markers.push(data);
+            }
+        }
+        if profile_markers.is_empty() {
+           None
+        } else {
+            profile_markers.sort_by_key(|data| data[12]);
+            let mut icc = Vec::new();
+            for data in profile_markers {
+                icc.extend(&data[14..]);
+            }
+            Profile::new_icc(&icc[..]).ok()
+        }
+    };
 
     match dinfo.out_color_space() {
         mozjpeg::ColorSpace::JCS_RGB => {
