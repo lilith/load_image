@@ -3,6 +3,7 @@
 extern crate lodepng;
 extern crate lcms2;
 extern crate mozjpeg;
+extern crate exif;
 extern crate file;
 extern crate rgb;
 
@@ -65,6 +66,8 @@ fn convert(left: &Image) -> Bitmap<test_linear::RGBAPLU> {
 fn compare(left: &Image, right: &Image) -> f64 {
     let left = convert(left);
     let right = convert(right);
+    assert_eq!(left.width, right.width);
+    assert_eq!(left.height, right.height);
     left.bitmap
         .iter()
         .zip(right.bitmap.iter())
@@ -178,5 +181,16 @@ fn pngtestsuite() {
         } else {
             res.unwrap();
         }
+    }
+}
+
+
+#[test]
+fn exif_test() {
+    for orient in &["top-left","top-right","bottom-left","bottom-right","left-bottom","left-top","right-bottom","right-top"] {
+        let expected = load_image(format!("tests/exif-{}.png", orient), true).unwrap();
+        let actual = load_image(format!("tests/exif-{}.jpg", orient), true).unwrap();
+        let diff = compare(&expected, &actual);
+        assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
     }
 }
