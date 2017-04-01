@@ -117,6 +117,12 @@ impl<T, Converted> Convertible<Converted> for [T]
     }
 }
 
+impl From<Image> for Img<ImageData> {
+    fn from(img: Image) -> Self {
+        Img::new(img.bitmap, img.width, img.height)
+    }
+}
+
 macro_rules! impl_img {
     ($px:ident) => {
         impl From<ImgVec<$px>> for Image {

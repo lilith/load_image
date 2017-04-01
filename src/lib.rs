@@ -18,7 +18,6 @@ mod convert;
 use std::io::Read;
 use std::path::Path;
 use rgb::*;
-use imgref::*;
 pub use image::*;
 
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {
@@ -44,6 +43,9 @@ pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Erro
 
 #[cfg(test)]
 mod test_linear;
+
+#[cfg(test)]
+use imgref::*;
 
 #[cfg(test)]
 fn convert(img: &Image) -> ImgVec<test_linear::RGBAPLU> {
