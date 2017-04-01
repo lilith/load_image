@@ -1,7 +1,7 @@
 use image::*;
 use lodepng;
 use lcms2::*;
-use bitmap::*;
+use imgref::*;
 use convert::*;
 use endian::*;
 
@@ -46,28 +46,28 @@ pub fn load_png(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
                 },
                 _ => return Err(lodepng::Error(59))
             };
-            match pal {
-                Image::RGB8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGB8).ok_or(lodepng::Error(59)),
-                Image::RGBA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA8).ok_or(lodepng::Error(59)),
-                Image::RGB16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGB16).ok_or(lodepng::Error(59)),
-                Image::RGBA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::RGBA16).ok_or(lodepng::Error(59)),
-                Image::GRAY8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAY8).ok_or(lodepng::Error(59)),
-                Image::GRAYA8(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAYA8).ok_or(lodepng::Error(59)),
-                Image::GRAY16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAY16).ok_or(lodepng::Error(59)),
-                Image::GRAYA16(pal) => from_palette(rawdata.buffer.as_ref(), &pal.bitmap, depth, rawdata.width, rawdata.height).map(Image::GRAYA16).ok_or(lodepng::Error(59)),
+            match pal.bitmap {
+                ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::RGBA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::RGB16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::RGBA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::GRAY8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::GRAYA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::GRAY16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
+                ImageData::GRAYA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(Image::from).ok_or(lodepng::Error(59)),
             }
         },
     }
 }
 
 
-fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<Bitmap<T>> {
+fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<ImgVec<T>> {
     match bitdepth {
-        8 => Some(Bitmap::new(buf.iter().map(|&c| pal[c as usize]).collect(), width, height)),
+        8 => Some(ImgVec::new(buf.iter().map(|&c| pal[c as usize]).collect(), width, height)),
         depth @ 1 | depth @ 2 | depth @ 4 => {
             let px_per_byte = 8 / depth;
             let mask = (1<<depth) - 1;
-            Some(Bitmap::new(buf.iter()
+            Some(ImgVec::new(buf.iter()
                                  .flat_map(|c| (0..px_per_byte).rev().map(move |n| pal[(c >> (n * depth) & mask) as usize]))
                                  .take(width * height)
                                  .collect(),

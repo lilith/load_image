@@ -1,6 +1,6 @@
 use rgb::*;
 use image::*;
-use bitmap::*;
+use imgref::*;
 use lcms2::*;
 use pixel_format::*;
 
@@ -56,7 +56,7 @@ impl ToSRGBImage for Vec<CMYK> {
         converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
             self.apply_profile(Profile::new_icc(include_bytes!("cmyk.icc")).unwrap())
         });
-        (converted.unwrap(), width, height).into()
+        ImgVec::new(converted.unwrap(), width, height).into()
     }
 }
 
@@ -64,9 +64,9 @@ impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
         T::Converted: LcmsPixelFormat + Default,
         T::ConvertedOpaque: LcmsPixelFormat + Default,
-        Image: From<SizedVec<T>>,
-        Image: From<SizedVec<T::Converted>>,
-        Image: From<SizedVec<T::ConvertedOpaque>>,
+        Image: From<ImgVec<T>>,
+        Image: From<ImgVec<T::Converted>>,
+        Image: From<ImgVec<T::ConvertedOpaque>>,
         T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image {
@@ -74,24 +74,24 @@ impl<T> ToSRGBImage for [T]
             if opaque {
                 let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
                 if let Some(pixels) = converted {
-                    return (pixels, width, height).into();
+                    return ImgVec::new(pixels, width, height).into();
                 }
             } else {
                 let converted: Option<Vec<T::Converted>> = self.apply_profile(profile);
                 if let Some(mut pixels) = converted {
                     T::copy_alpha(self, &mut pixels);
-                    return (pixels, width, height).into();
+                    return ImgVec::new(pixels, width, height).into();
                 }
             }
         }
-        (self.to_owned(), width, height).into()
+        ImgVec::new(self.to_owned(), width, height).into()
     }
 }
 
 impl<T, Converted> Convertible<Converted> for [T]
     where T: Copy + LcmsPixelFormat,
     Converted: Copy + LcmsPixelFormat + Default,
-    Image: From<SizedVec<Converted>>,
+    Image: From<ImgVec<Converted>>,
 {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>> {
         let (format, color_space) = T::pixel_format();
@@ -117,21 +117,25 @@ impl<T, Converted> Convertible<Converted> for [T]
     }
 }
 
-macro_rules! image_from_vec {
-    ($in_type:ty => $out_enum:path) => {
-        impl From<SizedVec<$in_type>> for Image {
-            fn from(f: SizedVec<$in_type>) -> Image {
-                $out_enum(Bitmap::new(f.0, f.1, f.2))
+macro_rules! impl_img {
+    ($px:ident) => {
+        impl From<ImgVec<$px>> for Image {
+            fn from(bitmap: ImgVec<$px>) -> Image {
+                Image {
+                    width: bitmap.width(),
+                    height: bitmap.height(),
+                    bitmap: ImageData::$px(bitmap.buf),
+                }
             }
         }
     }
 }
 
-image_from_vec!{ RGB8 => Image::RGB8 }
-image_from_vec!{ RGBA8 => Image::RGBA8 }
-image_from_vec!{ RGB16 => Image::RGB16 }
-image_from_vec!{ RGBA16 => Image::RGBA16 }
-image_from_vec!{ GRAY8 => Image::GRAY8 }
-image_from_vec!{ GRAY16 => Image::GRAY16 }
-image_from_vec!{ GRAYA8 => Image::GRAYA8 }
-image_from_vec!{ GRAYA16 => Image::GRAYA16 }
+impl_img!(RGB8);
+impl_img!(RGBA8);
+impl_img!(RGB16);
+impl_img!(RGBA16);
+impl_img!(GRAY8);
+impl_img!(GRAY16);
+impl_img!(GRAYA8);
+impl_img!(GRAYA16);

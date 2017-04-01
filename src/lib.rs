@@ -6,9 +6,9 @@ extern crate mozjpeg;
 extern crate exif;
 extern crate file;
 extern crate rgb;
+extern crate imgref;
 
 mod pixel_format;
-mod bitmap;
 mod endian;
 mod png;
 mod jpeg;
@@ -18,6 +18,7 @@ mod convert;
 use std::io::Read;
 use std::path::Path;
 use rgb::*;
+use imgref::*;
 pub use image::*;
 
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {
@@ -43,22 +44,20 @@ pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Erro
 
 #[cfg(test)]
 mod test_linear;
-#[cfg(test)]
-use bitmap::*;
 
 #[cfg(test)]
-fn convert(left: &Image) -> Bitmap<test_linear::RGBAPLU> {
+fn convert(img: &Image) -> ImgVec<test_linear::RGBAPLU> {
     use test_linear::ToRGBAPLU;
 
-    match left {
-        &Image::RGB8(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::RGBA8(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::RGB16(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::RGBA16(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::GRAY8(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::GRAY16(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::GRAYA8(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
-        &Image::GRAYA16(ref img) => Bitmap::new(img.bitmap.to_rgbaplu(), img.width, img.height),
+    match img.bitmap {
+        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::GRAY16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::GRAYA8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::GRAYA16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
     }
 }
 
@@ -68,9 +67,9 @@ fn compare(left: &Image, right: &Image) -> f64 {
     let right = convert(right);
     assert_eq!(left.width, right.width);
     assert_eq!(left.height, right.height);
-    left.bitmap
+    left.buf
         .iter()
-        .zip(right.bitmap.iter())
+        .zip(right.buf.iter())
         .map(|(&a, &b)| {
             let d = a - b;
             (d.r*d.r + d.g*d.g + d.b*d.b + d.a*d.a) as f64
@@ -105,8 +104,8 @@ fn image_gray() {
     let diff = compare(&g1, &g5);
     assert!(diff < 0.00001, "{}", diff);
 
-    match (g1, g5) {
-        (Image::RGBA16(_), Image::RGB16(_)) => {},
+    match (g1.bitmap, g5.bitmap) {
+        (ImageData::RGBA16(_), ImageData::RGB16(_)) => {},
         _ => panic!("opaque flag is supposed to return non-alpha type"),
     }
 }
