@@ -7,14 +7,14 @@ pub type GRAY16 = lodepng::Grey<u16>;
 pub type GRAYA8 = lodepng::GreyAlpha<u8>;
 pub type GRAYA16 = lodepng::GreyAlpha<u16>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Image {
     pub width: usize,
     pub height: usize,
     pub bitmap: ImageData,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageData {
     RGB8(Vec<RGB8>),
     RGBA8(Vec<RGBA8>),
