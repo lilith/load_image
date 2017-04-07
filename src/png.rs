@@ -10,6 +10,12 @@ pub fn load_png(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
     state.color_convert(false);
     state.read_text_chunks(false);
     state.remember_unknown_chunks(true);
+
+    let (width, height) = state.inspect(data)?;
+    if width*height > 10000*10000 {
+        return Err(lodepng::Error(92));
+    }
+
     let res = state.decode(data)?;
 
     let profile = if state.info_png().get("sRGB").is_some() {
