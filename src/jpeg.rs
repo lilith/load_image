@@ -4,6 +4,7 @@ use rgb::*;
 use image::*;
 use pixel_format::*;
 use convert::*;
+use std::panic;
 use mozjpeg::{Decompress, Marker};
 use mozjpeg::ColorSpace::*;
 use exif;
@@ -54,37 +55,45 @@ fn get_orientation(dinfo: &Decompress) -> u16 {
 }
 
 pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
-    let mut dinfo = Decompress::new();
-    dinfo.set_mem_src(data);
-    dinfo.save_marker(Marker::APP(1)); // Exif
-    dinfo.save_marker(Marker::APP(2)); // Profile
-    assert!(dinfo.read_header(true));
-    assert!(dinfo.start_decompress());
-    let width = dinfo.output_width();
-    let height = dinfo.output_height();
+    let thread_res = panic::catch_unwind(|| {
+        let mut dinfo = Decompress::new();
+        dinfo.set_mem_src(data);
+        dinfo.save_marker(Marker::APP(1)); // Exif
+        dinfo.save_marker(Marker::APP(2)); // Profile
+        assert!(dinfo.read_header(true));
+        assert!(dinfo.start_decompress());
+        let width = dinfo.output_width();
+        let height = dinfo.output_height();
 
-    if width*height > 10000*10000 {
-        return Err(lodepng::Error(92));
+        if width*height > 10000*10000 {
+            return Err(lodepng::Error(92));
+        }
+
+        let profile = get_profile(&dinfo);
+        let orientation = get_orientation(&dinfo);
+
+        let img = match dinfo.out_color_space() {
+            JCS_RGB => {
+                let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
+                rgb.to_image(profile, width, height, true)
+            },
+            JCS_CMYK => {
+                let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
+                rgb.to_image(profile, width, height, true)
+            },
+            JCS_GRAYSCALE => {
+                let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
+                g.to_image(profile, width, height, true)
+            },
+            _ => return Err(lodepng::Error(59))
+        };
+        Ok((img, orientation))
+    });
+
+    if thread_res.is_err() {
+        return Err(lodepng::Error(28));
     }
-
-    let profile = get_profile(&dinfo);
-    let orientation = get_orientation(&dinfo);
-
-    let img = match dinfo.out_color_space() {
-        JCS_RGB => {
-            let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
-            rgb.to_image(profile, width, height, true)
-        },
-        JCS_CMYK => {
-            let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
-            rgb.to_image(profile, width, height, true)
-        },
-        JCS_GRAYSCALE => {
-            let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
-            g.to_image(profile, width, height, true)
-        },
-        _ => return Err(lodepng::Error(59))
-    };
+    let (img, orientation) = thread_res.unwrap()?;
 
     Ok(match orientation {
         1 => img,

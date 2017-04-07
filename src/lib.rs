@@ -33,11 +33,12 @@ pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepn
 }
 
 pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
-
     if data.starts_with(b"\x89PNG") {
         png::load_png(data, opaque)
-    }  else {
+    } else if data[0] == 0xFF {
         jpeg::load_jpeg(data)
+    } else {
+        Err(lodepng::Error(28))
     }
 }
 
@@ -194,4 +195,11 @@ fn exif_test() {
         let diff = compare(&expected, &actual);
         assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
     }
+}
+
+#[test]
+fn nonsense() {
+    assert!(load_image_data(&[0u8], true).is_err());
+    assert!(load_image_data(&vec![0xFEu8; 1000], false).is_err());
+    assert!(load_image_data(&vec![0xFFu8; 1000], false).is_err());
 }
