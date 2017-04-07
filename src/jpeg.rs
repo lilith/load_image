@@ -63,6 +63,10 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
     let width = dinfo.output_width();
     let height = dinfo.output_height();
 
+    if width*height > 10000*10000 {
+        return Err(lodepng::Error(92));
+    }
+
     let profile = get_profile(&dinfo);
     let orientation = get_orientation(&dinfo);
 
