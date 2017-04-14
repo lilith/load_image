@@ -96,7 +96,7 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
     let (img, orientation) = thread_res.unwrap()?;
 
     Ok(match orientation {
-        1 => img,
+        1 | 0 => img,
         2 => img.rotated(Rotate::FlipX),
         3 => img.rotated(Rotate::D180),
         4 => img.rotated(Rotate::D180FlipX),
