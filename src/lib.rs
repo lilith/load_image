@@ -109,6 +109,7 @@ fn image_gray() {
 
     match (g1.bitmap, g5.bitmap) {
         (ImageData::RGBA16(_), ImageData::RGB16(_)) => {},
+        (ImageData::RGBA8(_), ImageData::RGBA8(_)) => {}, // Case when profiles are skipped
         _ => panic!("opaque flag is supposed to return non-alpha type"),
     }
 }
