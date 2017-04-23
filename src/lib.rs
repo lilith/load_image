@@ -43,24 +43,30 @@ pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Erro
 }
 
 #[cfg(test)]
-mod test_linear;
-
-#[cfg(test)]
 use imgref::*;
 
-#[cfg(test)]
-fn convert(img: &Image) -> ImgVec<test_linear::RGBAPLU> {
-    use test_linear::ToRGBAPLU;
+fn tou16(v: u8) -> u16 {
+    let v = v as u16;
+    (v<<8)|v
+}
 
+#[cfg(test)]
+fn convert(img: &Image) -> ImgVec<RGBA16> {
     match img.bitmap {
-        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::GRAY16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::GRAYA8(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
-        ImageData::GRAYA16(ref bitmap) => ImgVec::new(bitmap.to_rgbaplu(), img.width, img.height),
+        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(|c|tou16(c)).alpha(65535)).collect(), img.width, img.height),
+        ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(|c|tou16(c))).collect(), img.width, img.height),
+        ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.alpha(65535)).collect(), img.width, img.height),
+        ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.clone(), img.width, img.height),
+        ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|{
+            let c = tou16(c.0);
+            RGBA::new(c,c,c,65535)
+        }).collect(), img.width, img.height),
+        ImageData::GRAYA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|p|{
+            let c = tou16(p.0);
+            RGBA::new(c,c,c,tou16(p.1))
+        }).collect(), img.width, img.height),
+        ImageData::GRAY16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|RGBA::new(c.0,c.0,c.0,65535)).collect(), img.width, img.height),
+        ImageData::GRAYA16(ref bitmap) => ImgVec::new(bitmap.iter().map(|p|{RGBA::new(p.0,p.0,p.0,p.1)}).collect(), img.width, img.height),
     }
 }
 
@@ -70,14 +76,22 @@ fn compare(left: &Image, right: &Image) -> f64 {
     let right = convert(right);
     assert_eq!(left.width, right.width);
     assert_eq!(left.height, right.height);
-    left.buf
+    let ppx = left.buf
         .iter()
         .zip(right.buf.iter())
         .map(|(&a, &b)| {
-            let d = a - b;
-            (d.r*d.r + d.g*d.g + d.b*d.b + d.a*d.a) as f64
+            let a = a.map(|c|c as i64);
+            let b = b.map(|c|c as i64);
+            let d = RGBA{
+                r: (a.r*a.a - b.r*b.a),
+                g: (a.g*a.a - b.g*b.a),
+                b: (a.b*a.a - b.b*b.a),
+                a: (a.a*65536 - b.a*65536),
+            };
+            (d.r*d.r + d.g*d.g + d.b*d.b + d.a*d.a) as u64 >> 16
         })
-        .sum::<f64>() / (4 * left.width * left.height) as f64
+        .sum::<u64>() / ((left.width as u64 * left.height as u64) << 24);
+    ppx as f64 / (1<<24) as f64
 }
 
 #[test]
