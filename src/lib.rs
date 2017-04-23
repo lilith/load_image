@@ -15,6 +15,7 @@ mod jpeg;
 mod image;
 mod loader;
 mod convert;
+mod alpha;
 
 use std::path::Path;
 pub use image::*;

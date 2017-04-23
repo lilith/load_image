@@ -92,6 +92,7 @@ fn image_gray() {
 fn image_gray_profile() {
 
     let gp1 = load_image("tests/img/gray-profile.png", false).unwrap();
+    let gp1o = load_image("tests/img/gray-profile.png", true).unwrap();
     let gp2 = load_image("tests/img/gray-profile2.png", false).unwrap();
     let gp3 = load_image("tests/img/gray-profile.jpg", false).unwrap();
 
@@ -100,6 +101,16 @@ fn image_gray_profile() {
 
     let diff = compare(&gp1, &gp3);
     assert!(diff < 0.0003, "{}", diff);
+
+    match gp1o.bitmap {
+        ImageData::GRAY16(_) => {},
+        _ => panic!("opaque flag"),
+    };
+
+    match gp1.bitmap {
+        ImageData::GRAY16(_) => {},
+        _ => panic!("opaque auto-detect"),
+    };
 }
 
 #[test]
