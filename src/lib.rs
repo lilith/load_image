@@ -13,31 +13,19 @@ mod endian;
 mod png;
 mod jpeg;
 mod image;
+mod loader;
 mod convert;
 
-use std::io::Read;
 use std::path::Path;
-use rgb::*;
 pub use image::*;
+pub use loader::*;
 
+#[inline]
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {
-    let path = path.as_ref();
-    let data = if path.as_os_str() == "-" {
-        let mut data = Vec::new();
-        std::io::stdin().read_to_end(&mut data)?;
-        data
-    } else {
-        file::get(path)?
-    };
-    load_image_data(&data, opaque)
+    Loader::new().opaque(opaque).load_path(path)
 }
 
+#[inline]
 pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
-    if data.starts_with(b"\x89PNG") {
-        png::load_png(data, opaque)
-    } else if data[0] == 0xFF {
-        jpeg::load_jpeg(data)
-    } else {
-        Err(lodepng::Error(28))
-    }
+    Loader::new().opaque(opaque).load_data(data)
 }

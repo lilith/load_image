@@ -1,4 +1,5 @@
 use lcms2::*;
+use rgb::*;
 use super::*;
 
 #[repr(C)]
