@@ -36,15 +36,15 @@ pub fn is_opaque<T>(bitmap: &[T]) -> bool where T: IsTransparentPixel {
 #[test]
 fn alphapx() {
     let a = vec![RGBA8::new(0,0,0,255)];
-    assert!(!is_opaque(&a));
+    assert!(is_opaque(&a));
 
     let a = vec![lodepng::GreyAlpha(0u8,255)];
-    assert!(!is_opaque(&a));
-    let a = vec![lodepng::GreyAlpha(0u8,254)];
     assert!(is_opaque(&a));
+    let a = vec![lodepng::GreyAlpha(0u8,254)];
+    assert!(!is_opaque(&a));
 
     let a = vec![RGBA16::new(0,0,0,255)];
-    assert!(is_opaque(&a));
-    let a = vec![RGBA16::new(0,0,0,65535)];
     assert!(!is_opaque(&a));
+    let a = vec![RGBA16::new(0,0,0,65535)];
+    assert!(is_opaque(&a));
 }
