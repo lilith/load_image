@@ -1,6 +1,8 @@
 use lodepng;
 use imgref::*;
+use convert::*;
 use rgb::*;
+use format::*;
 
 pub type GRAY8 = lodepng::Grey<u8>;
 pub type GRAY16 = lodepng::Grey<u16>;
@@ -11,6 +13,7 @@ pub type GRAYA16 = lodepng::GreyAlpha<u16>;
 pub struct Image {
     pub width: usize,
     pub height: usize,
+    pub format: Format,
     pub bitmap: ImageData,
 }
 
@@ -40,15 +43,16 @@ pub enum Rotate {
 
 impl Image {
     pub fn rotated(&self, r: Rotate) -> Image {
+        let format = self.format;
         match self.bitmap {
-            ImageData::RGB8(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::RGBA8(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::RGB16(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::RGBA16(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::GRAY8(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::GRAY16(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::GRAYA8(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
-            ImageData::GRAYA16(ref bitmap) => Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r).into(),
+            ImageData::RGB8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::RGBA8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::RGB16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::RGBA16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::GRAY8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::GRAY16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::GRAYA8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
+            ImageData::GRAYA16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), format),
         }
     }
 

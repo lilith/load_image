@@ -2,6 +2,7 @@ use lodepng;
 use lcms2::*;
 use rgb::*;
 use image::*;
+use format::*;
 use pixel_format::*;
 use convert::*;
 use std::panic;
@@ -75,15 +76,15 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
         let img = match dinfo.out_color_space() {
             JCS_RGB => {
                 let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
-                rgb.to_image(profile, width, height, true)
+                rgb.to_image(profile, width, height, true, Format::Jpeg)
             },
             JCS_CMYK => {
                 let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
-                rgb.to_image(profile, width, height, true)
+                rgb.to_image(profile, width, height, true, Format::Jpeg)
             },
             JCS_GRAYSCALE => {
                 let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
-                g.to_image(profile, width, height, true)
+                g.to_image(profile, width, height, true, Format::Jpeg)
             },
             _ => return Err(lodepng::Error(59))
         };

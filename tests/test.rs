@@ -146,11 +146,13 @@ fn image_cmyk() {
     let im2 = load_image("tests/img/cmyk.jpg", true).unwrap();
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.002);
+    assert_eq!(Format::Jpeg, im2.format);
 }
 
 #[test]
 fn image_bw() {
-    load_image("tests/img/1bit.png", false).unwrap();
+    let res = load_image("tests/img/1bit.png", false).unwrap();
+    assert_eq!(Format::Png, res.format);
 }
 
 #[test]
@@ -167,7 +169,8 @@ fn pngtestsuite() {
         if filenamestr.starts_with("x") {
             assert!(res.is_err());
         } else {
-            res.unwrap();
+            let res = res.unwrap();
+            assert_eq!(Format::Png, res.format);
         }
     }
 }
@@ -180,6 +183,8 @@ fn exif_test() {
         let actual = load_image(format!("tests/img/exif-{}.jpg", orient), true).unwrap();
         let diff = compare(&expected, &actual);
         assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
+        assert_eq!(Format::Jpeg, actual.format);
+        assert_eq!(Format::Png, expected.format);
     }
 }
 

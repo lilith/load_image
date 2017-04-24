@@ -15,11 +15,13 @@ mod jpeg;
 mod image;
 mod loader;
 mod convert;
+mod format;
 mod alpha;
 
 use std::path::Path;
 pub use image::*;
 pub use loader::*;
+pub use format::*;
 
 #[inline]
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {

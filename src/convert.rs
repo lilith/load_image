@@ -1,6 +1,7 @@
 use rgb::*;
 use image::*;
 use imgref::*;
+use format::*;
 use lcms2::*;
 use pixel_format::*;
 
@@ -39,7 +40,7 @@ copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = s.1 as u16
 copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
 pub trait ToSRGBImage {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image;
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_format: Format) -> Image;
 }
 
 pub trait Convertible<Converted: Copy> {
@@ -47,7 +48,7 @@ pub trait Convertible<Converted: Copy> {
 }
 
 impl ToSRGBImage for Vec<CMYK> {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool, orig_format: Format) -> Image {
         let converted: Option<Vec<<CMYK as LcmsPixelConversion>::Converted>>;
         // The image may be CMYK, but lack any profile
         // The image may be CMYK, but with an RGB profile
@@ -56,7 +57,7 @@ impl ToSRGBImage for Vec<CMYK> {
         converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
             self.apply_profile(Profile::new_icc(include_bytes!("cmyk.icc")).unwrap())
         });
-        ImgVec::new(converted.unwrap(), width, height).into()
+        Image::from_opts(ImgVec::new(converted.unwrap(), width, height), orig_format)
     }
 }
 
@@ -64,34 +65,34 @@ impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
         T::Converted: LcmsPixelFormat + Default,
         T::ConvertedOpaque: LcmsPixelFormat + Default,
-        Image: From<ImgVec<T>>,
-        Image: From<ImgVec<T::Converted>>,
-        Image: From<ImgVec<T::ConvertedOpaque>>,
+        Image: FromOptions<ImgVec<T>>,
+        Image: FromOptions<ImgVec<T::Converted>>,
+        Image: FromOptions<ImgVec<T::ConvertedOpaque>>,
         T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_format: Format) -> Image {
         if let Some(profile) = profile {
             if opaque {
                 let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
                 if let Some(pixels) = converted {
-                    return ImgVec::new(pixels, width, height).into();
+                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format)
                 }
             } else {
                 let converted: Option<Vec<T::Converted>> = self.apply_profile(profile);
                 if let Some(mut pixels) = converted {
                     T::copy_alpha(self, &mut pixels);
-                    return ImgVec::new(pixels, width, height).into();
+                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format);
                 }
             }
         }
-        ImgVec::new(self.to_owned(), width, height).into()
+        Image::from_opts(ImgVec::new(self.to_owned(), width, height), orig_format)
     }
 }
 
 impl<T, Converted> Convertible<Converted> for [T]
     where T: Copy + LcmsPixelFormat,
     Converted: Copy + LcmsPixelFormat + Default,
-    Image: From<ImgVec<Converted>>,
+    Image: FromOptions<ImgVec<Converted>>,
 {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>> {
         let (format, color_space) = T::pixel_format();
@@ -130,13 +131,18 @@ impl From<Image> for Img<ImageData> {
     }
 }
 
+pub trait FromOptions<T> {
+    fn from_opts(t: T, options: Format) -> Self;
+}
+
 macro_rules! impl_img {
     ($px:ident) => {
-        impl From<ImgVec<$px>> for Image {
-            fn from(bitmap: ImgVec<$px>) -> Image {
+        impl FromOptions<ImgVec<$px>> for Image {
+            fn from_opts(bitmap: ImgVec<$px>, format: Format) -> Image {
                 Image {
                     width: bitmap.width(),
                     height: bitmap.height(),
+                    format: format,
                     bitmap: ImageData::$px(bitmap.buf),
                 }
             }
