@@ -22,6 +22,7 @@ use std::path::Path;
 pub use image::*;
 pub use loader::*;
 pub use format::*;
+pub use convert::FromOptions;
 
 #[inline]
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {
