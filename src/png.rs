@@ -5,9 +5,12 @@ use format::*;
 use imgref::*;
 use convert::*;
 use endian::*;
+use loader::*;
 use alpha::is_opaque;
 
-pub fn load_png(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
+impl Loader {
+pub fn load_png(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
+    let opaque = self.opaque;
     let mut state = lodepng::State::new();
     state.color_convert(false);
     state.read_text_chunks(false);
@@ -20,10 +23,10 @@ pub fn load_png(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
 
     let res = state.decode(data)?;
 
-    let profile = if state.info_png().get("sRGB").is_some() {
+    let profile = if state.info_png().get("sRGB").is_some() || self.profiles == Profiles::None {
         None
     } else if let Ok(iccp) = state.get_icc() {
-        Profile::new_icc(iccp.as_ref()).ok()
+        self.process_profile(Profile::new_icc(iccp.as_ref()))
     } else {
         None
     };
@@ -79,6 +82,7 @@ pub fn load_png(data: &[u8], opaque: bool) -> Result<Image, lodepng::Error> {
             }.ok_or(lodepng::Error(59))
         },
     }
+}
 }
 
 fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<ImgVec<T>> {

@@ -5,12 +5,14 @@ use image::*;
 use format::*;
 use pixel_format::*;
 use convert::*;
+use loader::*;
 use std::panic;
 use mozjpeg::{Decompress, Marker};
 use mozjpeg::ColorSpace::*;
 use exif;
 
-fn get_profile(dinfo: &Decompress) -> Option<Profile> {
+impl Loader {
+fn get_jpeg_profile(&self, dinfo: &Decompress) -> Option<Profile> {
     let mut profile_markers = Vec::new();
 
     for m in dinfo.markers() {
@@ -28,7 +30,7 @@ fn get_profile(dinfo: &Decompress) -> Option<Profile> {
         for data in profile_markers {
             icc.extend(&data[14..]);
         }
-        Profile::new_icc(&icc[..]).ok()
+        self.process_profile(Profile::new_icc(&icc[..]))
     } else {
         None
     };
@@ -55,7 +57,7 @@ fn get_orientation(dinfo: &Decompress) -> u16 {
     return 1;
 }
 
-pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
+pub fn load_jpeg(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
     let thread_res = panic::catch_unwind(|| {
         let mut dinfo = Decompress::new();
         dinfo.set_mem_src(data);
@@ -70,8 +72,8 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
             return Err(lodepng::Error(92));
         }
 
-        let profile = get_profile(&dinfo);
-        let orientation = get_orientation(&dinfo);
+        let profile = if self.profiles != Profiles::None {self.get_jpeg_profile(&dinfo)} else {None};
+        let orientation = Self::get_orientation(&dinfo);
 
         let img = match dinfo.out_color_space() {
             JCS_RGB => {
@@ -107,4 +109,5 @@ pub fn load_jpeg(data: &[u8]) -> Result<Image, lodepng::Error> {
         8 => img.rotated(Rotate::D90),
         x => panic!("unsupported rotation {}", x),
     })
+}
 }

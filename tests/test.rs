@@ -131,6 +131,45 @@ fn image_load1() {
 }
 
 #[test]
+fn image_load_no_profiles() {
+    let prof_jpg = Loader::new().profiles(Profiles::None).load_path("tests/img/profile.jpg").unwrap();
+
+    let strip_jpg = load_image("tests/img/profile-stripped.jpg", false).unwrap();
+    let diff = compare(&strip_jpg, &prof_jpg);
+    assert!(diff < 0.002, "{} jpg", diff);
+
+    match prof_jpg.bitmap {
+        ImageData::RGB8(_) => {},
+        _ => panic!("Expected plain RGB"),
+    }
+}
+
+#[test]
+fn image_load_all_profiles() {
+    let prof_png = Loader::new().profiles(Profiles::All).load_path("tests/img/profile.png").unwrap();
+
+    match prof_png.bitmap {
+        ImageData::RGB16(_) => {},
+        _ => panic!("Expected widening due to profile"),
+    }
+}
+
+#[test]
+fn image_load_some_profiles() {
+    let prof_png = Loader::new().profiles(Profiles::NonsRGB).load_path("tests/img/profile.png").unwrap();
+    match prof_png.bitmap {
+        ImageData::RGB8(_) => {},
+        _ => panic!("Expected no widening due to skipped sRGB embedded profile"),
+    }
+
+    let prof_jpg = Loader::new().profiles(Profiles::NonsRGB).load_path("tests/img/profile.jpg").unwrap();
+    match prof_jpg.bitmap {
+        ImageData::RGB16(_) => {},
+        _ => panic!("Expected widening due to profile"),
+    }
+}
+
+#[test]
 fn image_4bit() {
 
     let im1 = load_image("tests/img/tile1.png", false).unwrap();
