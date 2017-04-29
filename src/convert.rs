@@ -63,19 +63,19 @@ impl ToSRGBImage for Vec<CMYK> {
 
 impl<T> ToSRGBImage for [T]
     where T: LcmsPixelFormat + LcmsPixelConversion,
-        T::Converted: LcmsPixelFormat + Default,
-        T::ConvertedOpaque: LcmsPixelFormat + Default,
-        Image: FromOptions<ImgVec<T>>,
-        Image: FromOptions<ImgVec<T::Converted>>,
-        Image: FromOptions<ImgVec<T::ConvertedOpaque>>,
-        T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
+          T::Converted: LcmsPixelFormat + Default,
+          T::ConvertedOpaque: LcmsPixelFormat + Default,
+          Image: FromOptions<ImgVec<T>>,
+          Image: FromOptions<ImgVec<T::Converted>>,
+          Image: FromOptions<ImgVec<T::ConvertedOpaque>>,
+          T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_format: Format) -> Image {
         if let Some(profile) = profile {
             if opaque {
                 let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
                 if let Some(pixels) = converted {
-                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format)
+                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format);
                 }
             } else {
                 let converted: Option<Vec<T::Converted>> = self.apply_profile(profile);
@@ -91,8 +91,8 @@ impl<T> ToSRGBImage for [T]
 
 impl<T, Converted> Convertible<Converted> for [T]
     where T: Copy + LcmsPixelFormat,
-    Converted: Copy + LcmsPixelFormat + Default,
-    Image: FromOptions<ImgVec<Converted>>,
+          Converted: Copy + LcmsPixelFormat + Default,
+          Image: FromOptions<ImgVec<Converted>>
 {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>> {
         let (format, color_space) = T::pixel_format();
@@ -108,12 +108,12 @@ impl<T, Converted> Convertible<Converted> for [T]
 
         match Transform::new(&profile, format, &dest_profile, dest_format, Intent::RelativeColorimetric) {
             Ok(t) => {
-                let mut dest:Vec<Converted> = vec![Default::default(); self.len()];
+                let mut dest: Vec<Converted> = vec![Default::default(); self.len()];
 
                 t.transform_pixels(self, &mut dest);
                 Some(dest)
-            }
-            _ => None
+            },
+            _ => None,
         }
     }
 }
