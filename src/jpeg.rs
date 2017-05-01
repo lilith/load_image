@@ -99,7 +99,6 @@ impl Loader {
         let (img, orientation) = thread_res.unwrap()?;
 
         Ok(match orientation {
-            1 | 0 => img,
             2 => img.rotated(Rotate::FlipX),
             3 => img.rotated(Rotate::D180),
             4 => img.rotated(Rotate::D180FlipX),
@@ -107,7 +106,7 @@ impl Loader {
             6 => img.rotated(Rotate::D270),
             7 => img.rotated(Rotate::D90FlipX),
             8 => img.rotated(Rotate::D90),
-            x => panic!("unsupported rotation {}", x),
+            _ => img, // 1 is expected, but in practice there's lots of images with bogus rotation
         })
     }
 }
