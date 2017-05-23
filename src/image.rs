@@ -42,6 +42,19 @@ pub enum Rotate {
 }
 
 impl Image {
+    pub fn is_opaque(&self) -> bool {
+        match self.bitmap {
+            ImageData::RGB8(_) => true,
+            ImageData::RGBA8(_) => false,
+            ImageData::RGB16(_) => true,
+            ImageData::RGBA16(_) => false,
+            ImageData::GRAY8(_) => true,
+            ImageData::GRAY16(_) => true,
+            ImageData::GRAYA8(_) => false,
+            ImageData::GRAYA16(_) => false,
+        }
+    }
+
     pub fn rotated(&self, r: Rotate) -> Image {
         let format = self.format;
         match self.bitmap {

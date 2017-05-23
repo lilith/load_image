@@ -63,6 +63,10 @@ fn image_gray() {
     let g4 = load_image("tests/img/gray1.jpg", false).unwrap();
     let g5 = load_image("tests/img/gray1-rgba.png", true).unwrap();
 
+    assert!(g0.is_opaque());
+    assert!(g3.is_opaque());
+    assert!(g4.is_opaque());
+
     let diff = compare(&g0, &g1);
     assert!(diff < 0.00001, "{}", diff);
 
@@ -157,6 +161,7 @@ fn image_load_all_profiles() {
 #[test]
 fn image_load_some_profiles() {
     let prof_png = Loader::new().profiles(Profiles::NonsRGB).load_path("tests/img/profile.png").unwrap();
+    assert!(prof_png.is_opaque());
     match prof_png.bitmap {
         ImageData::RGB8(_) => {},
         _ => panic!("Expected no widening due to skipped sRGB embedded profile"),
@@ -174,6 +179,8 @@ fn image_4bit() {
 
     let im1 = load_image("tests/img/tile1.png", false).unwrap();
     let im2 = load_image("tests/img/tile2.png", false).unwrap();
+    assert!(!im1.is_opaque());
+    assert!(!im2.is_opaque());
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.00002);
 }
@@ -183,6 +190,9 @@ fn image_cmyk() {
 
     let im1 = load_image("tests/img/cmyk.png", true).unwrap();
     let im2 = load_image("tests/img/cmyk.jpg", true).unwrap();
+    assert!(im1.is_opaque());
+    assert!(im2.is_opaque());
+
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.002);
     assert_eq!(Format::Jpeg, im2.format);
@@ -192,6 +202,7 @@ fn image_cmyk() {
 fn image_bw() {
     let res = load_image("tests/img/1bit.png", false).unwrap();
     assert_eq!(Format::Png, res.format);
+    assert!(res.is_opaque());
 }
 
 #[test]
@@ -221,6 +232,9 @@ fn exif_test() {
         let expected = load_image(format!("tests/img/exif-{}.png", orient), true).unwrap();
         let actual = load_image(format!("tests/img/exif-{}.jpg", orient), true).unwrap();
         let diff = compare(&expected, &actual);
+
+        assert!(actual.is_opaque());
+
         assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
         assert_eq!(Format::Jpeg, actual.format);
         assert_eq!(Format::Png, expected.format);
