@@ -5,15 +5,15 @@ keywords = ["load_image"]
 license = "AGPL-3.0"
 name = "load_image"
 publish = false
-version = "2.5.0"
+version = "2.5.1"
 
 [dependencies]
 file = "1.0.0"
 imgref = "1.0.0"
 kamadak-exif = "0.2.0"
 lcms2 = "2.0.0"
-lodepng = "1.0.2"
-rgb = "0.5.6"
+lodepng = "1.1.1"
+rgb = "0.5.8"
 
 [dependencies.mozjpeg]
 path = "../mozjpeg-rust"
