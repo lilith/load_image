@@ -11,7 +11,7 @@ version = "2.6.0"
 file = "1.0.0"
 imgref = "1.0.0"
 kamadak-exif = "0.2.0"
-lcms2 = "2.0.0"
+lcms2 = "3.0.0"
 lodepng = "1.1.1"
 rgb = "0.5.8"
 

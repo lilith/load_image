@@ -62,12 +62,12 @@ impl Loader {
         }
     }
 
-    pub fn process_profile(&self, profile: Result<Profile, ()>) -> Option<Profile> {
+    pub fn process_profile(&self, profile: LCMSResult<Profile>) -> Option<Profile> {
         match profile {
             Err(_) => None,
             Ok(profile) => {
                 if self.profiles == Profiles::NonsRGB {
-                    if let Some(desc) = profile.info(InfoType::Description, "en", "US") {
+                    if let Some(desc) = profile.info(InfoType::Description, Locale::new("en_US")) {
                         if desc.starts_with("sRGB ") {
                             return None;
                         }

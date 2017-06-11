@@ -100,7 +100,7 @@ impl<T, Converted> Convertible<Converted> for [T]
         if profile.color_space() != color_space {
             return None;
         }
-        let dest_profile = if color_space == ColorSpaceSignature::SigGrayData {
+        let dest_profile = if color_space == ColorSpaceSignature::GrayData {
             Profile::new_icc(include_bytes!("gray.icc")).unwrap()
         } else {
             Profile::new_srgb()

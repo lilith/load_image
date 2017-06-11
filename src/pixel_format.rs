@@ -39,21 +39,21 @@ macro_rules! pixel_format {
     };
 }
 
-pixel_format!{CMYK, PixelFormat::CMYK_8_REV, ColorSpaceSignature::SigCmykData }
+pixel_format!{CMYK, PixelFormat::CMYK_8_REV, ColorSpaceSignature::CmykData }
 pixel_conversion!{CMYK => RGB16, RGB16}
 
-pixel_format!{RGB8, PixelFormat::RGB_8, ColorSpaceSignature::SigRgbData }
-pixel_format!{RGBA8, PixelFormat::RGBA_8, ColorSpaceSignature::SigRgbData }
-pixel_format!{lodepng::Grey<u8>, PixelFormat::GRAY_8, ColorSpaceSignature::SigGrayData }
-pixel_format!{lodepng::GreyAlpha<u8>, PixelFormat::GRAYA_8, ColorSpaceSignature::SigGrayData }
+pixel_format!{RGB8, PixelFormat::RGB_8, ColorSpaceSignature::RgbData }
+pixel_format!{RGBA8, PixelFormat::RGBA_8, ColorSpaceSignature::RgbData }
+pixel_format!{lodepng::Grey<u8>, PixelFormat::GRAY_8, ColorSpaceSignature::GrayData }
+pixel_format!{lodepng::GreyAlpha<u8>, PixelFormat::GRAYA_8, ColorSpaceSignature::GrayData }
 #[cfg(target_endian = "little")]
-pixel_format!{RGB16, PixelFormat::RGB_16, ColorSpaceSignature::SigRgbData }
+pixel_format!{RGB16, PixelFormat::RGB_16, ColorSpaceSignature::RgbData }
 #[cfg(target_endian = "little")]
-pixel_format!{RGBA16, PixelFormat::RGBA_16, ColorSpaceSignature::SigRgbData }
+pixel_format!{RGBA16, PixelFormat::RGBA_16, ColorSpaceSignature::RgbData }
 #[cfg(target_endian = "little")]
-pixel_format!{lodepng::Grey<u16>, PixelFormat::GRAY_16, ColorSpaceSignature::SigGrayData }
+pixel_format!{lodepng::Grey<u16>, PixelFormat::GRAY_16, ColorSpaceSignature::GrayData }
 #[cfg(target_endian = "little")]
-pixel_format!{lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16, ColorSpaceSignature::SigGrayData }
+pixel_format!{lodepng::GreyAlpha<u16>, PixelFormat::GRAYA_16, ColorSpaceSignature::GrayData }
 
 pixel_conversion!{RGB8 => RGB16, RGB16}
 pixel_conversion!{RGBA8 => RGBA16, RGB16}
