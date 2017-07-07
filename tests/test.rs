@@ -93,6 +93,15 @@ fn image_gray() {
 }
 
 #[test]
+fn image_implied1998_profile() {
+    let adobe98 = load_image("tests/img/adobe1998exif.jpg", true).unwrap();
+    let expected = load_image("tests/img/adobe1998assrgb.jpg", true).unwrap();
+
+    let diff = compare(&adobe98, &expected);
+    assert!(diff < 0.0008, "98 {}", diff);
+}
+
+#[test]
 fn image_gray_profile() {
 
     let gp1 = load_image("tests/img/gray-profile.png", false).unwrap();
