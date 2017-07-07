@@ -17,6 +17,7 @@ mod loader;
 mod convert;
 mod format;
 mod alpha;
+mod profiles;
 
 use std::path::Path;
 pub use image::*;

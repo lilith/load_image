@@ -3,6 +3,7 @@ use image::*;
 use imgref::*;
 use format::*;
 use lcms2::*;
+use profiles;
 use pixel_format::*;
 
 pub trait CopyAlpha<Converted: Copy> where Self: Copy {
@@ -55,7 +56,7 @@ impl ToSRGBImage for Vec<CMYK> {
         // The image may be CMYK with CMYK profile, but the profile may not work with LCMS
         // So in all cases fall back to a known good profile, since profile-less CMYK is bogus.
         converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
-            self.apply_profile(Profile::new_icc(include_bytes!("cmyk.icc")).unwrap())
+            self.apply_profile(Profile::new_icc(profiles::CMYK).unwrap())
         });
         Image::from_opts(ImgVec::new(converted.unwrap(), width, height), orig_format)
     }
@@ -101,7 +102,7 @@ impl<T, Converted> Convertible<Converted> for [T]
             return None;
         }
         let dest_profile = if color_space == ColorSpaceSignature::GrayData {
-            Profile::new_icc(include_bytes!("gray.icc")).unwrap()
+            Profile::new_icc(profiles::GRAY).unwrap()
         } else {
             Profile::new_srgb()
         };
