@@ -6,10 +6,13 @@ use format::*;
 use pixel_format::*;
 use convert::*;
 use loader::*;
+use profiles;
 use std::panic;
 use mozjpeg::{Decompress, Marker};
 use mozjpeg::ColorSpace::*;
 use rexif;
+
+const ADOBE98_CHROMATICITIES: &'static [f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
 
 impl Loader {
     fn get_jpeg_profile(&self, dinfo: &Decompress) -> Option<Profile> {
@@ -38,23 +41,35 @@ impl Loader {
         profile
     }
 
-    fn get_orientation(dinfo: &Decompress) -> u16 {
+    fn get_exif_data(dinfo: &Decompress) -> (u16, bool) {
+        let mut orientation = 1;
+        let mut is_adobe_1998 = false;
+
         for m in dinfo.markers() {
             let data = m.data;
-            if m.marker == Marker::APP(1) && data.len() > 8 &&
-                &data[0..6] == b"Exif\0\0" {
-                if let Ok(parsed) = rexif::parse_buffer(&data[6..]) {
-                    for f in parsed.entries {
-                        if f.tag == rexif::ExifTag::Orientation {
-                            if let rexif::TagValue::U16(n) = f.value {
-                                if let Some(&n) = n.get(0) {return n;}
+            if m.marker != Marker::APP(1) || data.len() < 12 || &data[0..6] != b"Exif\0\0" {
+                continue;
+            }
+            if let Ok(parsed) = rexif::parse_buffer(&data[6..]) {
+                for f in parsed.entries {
+                    match (f.tag, f.value) {
+                        (rexif::ExifTag::PrimaryChromaticities, rexif::TagValue::URational(n)) => {
+                            if n.len() == ADOBE98_CHROMATICITIES.len() &&
+                                n.iter().zip(ADOBE98_CHROMATICITIES).all(|(r,a)| (r.value()-a).abs() < 0.001) {
+                                is_adobe_1998 = true;
                             }
-                        }
-                    }
+                        },
+                        (rexif::ExifTag::Orientation, rexif::TagValue::U16(n)) => {
+                            if let Some(&n) = n.get(0) {
+                                orientation = n;
+                            }
+                        },
+                        _ => {},
+                    };
                 }
             }
         }
-        return 1;
+        return (orientation, is_adobe_1998);
     }
 
     pub fn load_jpeg(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
@@ -72,8 +87,16 @@ impl Loader {
                 return Err(lodepng::Error(92));
             }
 
-            let profile = if self.profiles != Profiles::None {self.get_jpeg_profile(&dinfo)} else {None};
-            let orientation = Self::get_orientation(&dinfo);
+            let (orientation, is_adobe_1998) = Self::get_exif_data(&dinfo);
+            let profile = if self.profiles == Profiles::None {
+                None
+            } else if let Some(embedded) = self.get_jpeg_profile(&dinfo) {
+                Some(embedded)
+            } else if is_adobe_1998 {
+                Profile::new_icc(profiles::ADOBE1998).ok()
+            } else {
+                None
+            };
 
             let img = match dinfo.out_color_space() {
                 JCS_RGB => {
