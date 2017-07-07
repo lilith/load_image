@@ -9,7 +9,7 @@ use loader::*;
 use std::panic;
 use mozjpeg::{Decompress, Marker};
 use mozjpeg::ColorSpace::*;
-use exif;
+use rexif;
 
 impl Loader {
     fn get_jpeg_profile(&self, dinfo: &Decompress) -> Option<Profile> {
@@ -43,10 +43,10 @@ impl Loader {
             let data = m.data;
             if m.marker == Marker::APP(1) && data.len() > 8 &&
                 &data[0..6] == b"Exif\0\0" {
-                if let Ok((exif_fields, _)) = exif::parse_exif(&data[6..]) {
-                    for f in exif_fields {
-                        if f.tag == exif::tag::Orientation {
-                            if let exif::Value::Short(n) = f.value {
+                if let Ok(parsed) = rexif::parse_buffer(&data[6..]) {
+                    for f in parsed.entries {
+                        if f.tag == rexif::ExifTag::Orientation {
+                            if let rexif::TagValue::U16(n) = f.value {
                                 if let Some(&n) = n.get(0) {return n;}
                             }
                         }

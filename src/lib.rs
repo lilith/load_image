@@ -3,7 +3,7 @@
 extern crate lodepng;
 extern crate lcms2;
 extern crate mozjpeg;
-extern crate exif;
+extern crate rexif;
 extern crate file;
 extern crate rgb;
 extern crate imgref;
