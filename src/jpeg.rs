@@ -8,8 +8,8 @@ use convert::*;
 use loader::*;
 use profiles;
 use std::panic;
+use mozjpeg;
 use mozjpeg::{Decompress, Marker};
-use mozjpeg::ColorSpace::*;
 use rexif;
 
 const ADOBE98_CHROMATICITIES: &'static [f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
@@ -74,14 +74,13 @@ impl Loader {
 
     pub fn load_jpeg(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
         let thread_res = panic::catch_unwind(|| {
-            let mut dinfo = Decompress::new();
-            dinfo.set_mem_src(data);
-            dinfo.save_marker(Marker::APP(1)); // Exif
-            dinfo.save_marker(Marker::APP(2)); // Profile
-            assert!(dinfo.read_header(true));
-            assert!(dinfo.start_decompress());
-            let width = dinfo.output_width();
-            let height = dinfo.output_height();
+            let dinfo = Decompress::with_markers(&[
+                Marker::APP(1), /* Exif */
+                Marker::APP(2), /* Profile */
+            ]).from_mem(data).unwrap();
+
+            let width = dinfo.width();
+            let height = dinfo.height();
 
             if width*height > 10000*10000 {
                 return Err(lodepng::Error(92));
@@ -98,20 +97,19 @@ impl Loader {
                 None
             };
 
-            let img = match dinfo.out_color_space() {
-                JCS_RGB => {
+            let img = match dinfo.image()? {
+                mozjpeg::Format::RGB(mut dinfo) => {
                     let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
                     rgb.to_image(profile, width, height, true, Format::Jpeg)
                 },
-                JCS_CMYK => {
-                    let mut rgb: Vec<CMYK> = dinfo.read_scanlines().unwrap();
-                    rgb.to_image(profile, width, height, true, Format::Jpeg)
+                mozjpeg::Format::CMYK(mut dinfo) => {
+                    let mut cmyk: Vec<CMYK> = dinfo.read_scanlines().unwrap();
+                    cmyk.to_image(profile, width, height, true, Format::Jpeg)
                 },
-                JCS_GRAYSCALE => {
+                mozjpeg::Format::Gray(mut dinfo) => {
                     let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
                     g.to_image(profile, width, height, true, Format::Jpeg)
                 },
-                _ => return Err(lodepng::Error(59))
             };
             Ok((img, orientation))
         });
