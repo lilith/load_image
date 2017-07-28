@@ -70,7 +70,7 @@ impl Image {
     }
 
     fn rotated_bitmap<T: Copy>(bitmap: ImgRef<T>, rotation: Rotate) -> ImgVec<T> {
-        let (width, height, stride) = (bitmap.width(), bitmap.height(), bitmap.stride);
+        let (width, height, stride) = (bitmap.width(), bitmap.height(), bitmap.stride());
         let s = &bitmap.buf;
         let mut d = Vec::with_capacity(bitmap.width() * bitmap.height());
         match rotation {
