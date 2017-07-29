@@ -2,6 +2,7 @@ use image::*;
 use lodepng;
 use lcms2::*;
 use format::*;
+use std::fs;
 use imgref::*;
 use convert::*;
 use endian::*;
@@ -9,7 +10,7 @@ use loader::*;
 use alpha::is_opaque;
 
 impl Loader {
-    pub fn load_png(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
+    pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
         let opaque = self.opaque;
         let mut state = lodepng::State::new();
         state.color_convert(false);
@@ -31,9 +32,7 @@ impl Loader {
             None
         };
 
-        let meta = ImageMeta {
-            format: Format::Png, ..ImageMeta::default()
-        };
+        let meta = ImageMeta::new(Format::Png, fs_meta);
 
         match res {
             lodepng::Image::RGBA(mut image) => {

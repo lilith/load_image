@@ -4,7 +4,6 @@ extern crate lodepng;
 extern crate lcms2;
 extern crate mozjpeg;
 extern crate rexif;
-extern crate file;
 extern crate rgb;
 extern crate imgref;
 

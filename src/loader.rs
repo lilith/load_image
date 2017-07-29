@@ -1,11 +1,11 @@
 
 use std::io;
 use std::io::Read;
+use std::fs;
 use std::path::Path;
 use image::*;
 use lcms2::*;
 use lodepng;
-use file;
 
 #[derive(Eq, PartialEq)]
 pub enum Profiles {
@@ -15,8 +15,8 @@ pub enum Profiles {
 }
 
 pub struct Loader {
-    pub opaque: bool, // FIXME: pub(crate)
-    pub profiles: Profiles, // FIXME: pub(crate)
+    pub(crate) opaque: bool,
+    pub(crate) profiles: Profiles,
 }
 
 impl Loader {
@@ -35,28 +35,35 @@ impl Loader {
     }
 
     #[inline]
-    pub fn profiles(&mut self, v: Profiles) -> &mut Self {
-        self.profiles = v;
+    pub fn profiles(&mut self, convert_profiles: Profiles) -> &mut Self {
+        self.profiles = convert_profiles;
         self
     }
 
     pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, lodepng::Error> {
         let path = path.as_ref();
-        let data = if path.as_os_str() == "-" {
-            let mut data = Vec::new();
+        let mut data = Vec::new();
+        let (data, stat) = if path.as_os_str() == "-" {
             io::stdin().read_to_end(&mut data)?;
-            data
+            (data, None)
         } else {
-            file::get(path)?
+            let mut file = fs::File::open(path)?;
+            let stat = file.metadata()?;
+            file.read_to_end(&mut data)?;
+            (data, Some(stat))
         };
-        self.load_data(&data)
+        self.load_data_with_stat(&data, stat)
     }
 
     pub fn load_data(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
+        self.load_data_with_stat(data, None)
+    }
+
+    pub fn load_data_with_stat(&self, data: &[u8], meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
         if data.starts_with(b"\x89PNG") {
-            self.load_png(data)
+            self.load_png(data, meta)
         } else if data[0] == 0xFF {
-            self.load_jpeg(data)
+            self.load_jpeg(data, meta)
         } else {
             Err(lodepng::Error(28))
         }

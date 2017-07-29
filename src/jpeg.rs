@@ -11,6 +11,7 @@ use std::panic;
 use mozjpeg;
 use mozjpeg::{Decompress, Marker};
 use rexif;
+use std::fs;
 
 const ADOBE98_CHROMATICITIES: &'static [f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
 
@@ -72,7 +73,7 @@ impl Loader {
         return (orientation, is_adobe_1998);
     }
 
-    pub fn load_jpeg(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
+    pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
         let thread_res = panic::catch_unwind(|| {
             let dinfo = Decompress::with_markers(&[
                 Marker::APP(1), /* Exif */
@@ -96,9 +97,7 @@ impl Loader {
             } else {
                 None
             };
-            let meta = ImageMeta {
-                format: Format::Jpeg, ..ImageMeta::default()
-            };
+            let meta = ImageMeta::new(Format::Jpeg, fs_meta);
 
             let img = match dinfo.image()? {
                 mozjpeg::Format::RGB(mut dinfo) => {
