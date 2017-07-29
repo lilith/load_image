@@ -1,7 +1,6 @@
 use rgb::*;
 use image::*;
 use imgref::*;
-use format::*;
 use lcms2::*;
 use profiles;
 use pixel_format::*;
@@ -41,7 +40,7 @@ copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = s.1 as u16
 copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
 pub trait ToSRGBImage {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_format: Format) -> Image;
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_meta: ImageMeta) -> Image;
 }
 
 pub trait Convertible<Converted: Copy> {
@@ -49,7 +48,7 @@ pub trait Convertible<Converted: Copy> {
 }
 
 impl ToSRGBImage for Vec<CMYK> {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool, orig_format: Format) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool, orig_meta: ImageMeta) -> Image {
         let converted: Option<Vec<<CMYK as LcmsPixelConversion>::Converted>>;
         // The image may be CMYK, but lack any profile
         // The image may be CMYK, but with an RGB profile
@@ -58,7 +57,7 @@ impl ToSRGBImage for Vec<CMYK> {
         converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
             self.apply_profile(Profile::new_icc(profiles::CMYK).unwrap())
         });
-        Image::from_opts(ImgVec::new(converted.unwrap(), width, height), orig_format)
+        Image::from_opts(ImgVec::new(converted.unwrap(), width, height), orig_meta)
     }
 }
 
@@ -71,22 +70,22 @@ impl<T> ToSRGBImage for [T]
           Image: FromOptions<ImgVec<T::ConvertedOpaque>>,
           T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_format: Format) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_meta: ImageMeta) -> Image {
         if let Some(profile) = profile {
             if opaque {
                 let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
                 if let Some(pixels) = converted {
-                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format);
+                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_meta);
                 }
             } else {
                 let converted: Option<Vec<T::Converted>> = self.apply_profile(profile);
                 if let Some(mut pixels) = converted {
                     T::copy_alpha(self, &mut pixels);
-                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_format);
+                    return Image::from_opts(ImgVec::new(pixels, width, height), orig_meta);
                 }
             }
         }
-        Image::from_opts(ImgVec::new(self.to_owned(), width, height), orig_format)
+        Image::from_opts(ImgVec::new(self.to_owned(), width, height), orig_meta)
     }
 }
 
@@ -126,17 +125,17 @@ impl From<Image> for Img<ImageData> {
 }
 
 pub trait FromOptions<T> {
-    fn from_opts(t: T, options: Format) -> Self;
+    fn from_opts(t: T, options: ImageMeta) -> Self;
 }
 
 macro_rules! impl_img {
     ($px:ident) => {
         impl FromOptions<ImgVec<$px>> for Image {
-            fn from_opts(bitmap: ImgVec<$px>, format: Format) -> Image {
+            fn from_opts(bitmap: ImgVec<$px>, meta: ImageMeta) -> Image {
                 Image {
                     width: bitmap.width(),
                     height: bitmap.height(),
-                    format: format,
+                    meta,
                     bitmap: ImageData::$px(bitmap.buf),
                 }
             }

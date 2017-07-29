@@ -31,26 +31,30 @@ impl Loader {
             None
         };
 
+        let meta = ImageMeta {
+            format: Format::Png
+        };
+
         match res {
             lodepng::Image::RGBA(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, Format::Png))
+                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta))
             },
-            lodepng::Image::RGB(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, Format::Png)),
-            lodepng::Image::RGB16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, Format::Png)),
+            lodepng::Image::RGB(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::RGB16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta)),
             lodepng::Image::RGBA16(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, Format::Png))
+                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta))
             },
-            lodepng::Image::Grey(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, Format::Png)),
-            lodepng::Image::Grey16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, Format::Png)),
+            lodepng::Image::Grey(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::Grey16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta)),
             lodepng::Image::GreyAlpha(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, Format::Png))
+                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta))
             },
             lodepng::Image::GreyAlpha16(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, Format::Png))
+                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta))
             },
             lodepng::Image::RawData(rawdata) => {
                 let mut png = state.info_raw_mut();
@@ -60,25 +64,25 @@ impl Loader {
                         let pal = png.palette_mut();
                         let ncolors = pal.len();
                         let opaque = opaque || is_opaque(pal);
-                        pal.to_image(profile, 1, ncolors, opaque, Format::Png)
+                        pal.to_image(profile, 1, ncolors, opaque, meta.clone())
                     },
                     lodepng::LCT_GREY => {
                         let ncolors = 1<<depth;
                         let max = ncolors-1;
                         let mut graypal: Vec<_> = (0..ncolors).map(|c| lodepng::Grey((c*255/max) as u8)).collect();
-                        graypal.to_image(profile, 1, ncolors, true, Format::Png)
+                        graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
                     _ => return Err(lodepng::Error(59))
                 };
                 match pal.bitmap {
-                    ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::RGBA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::RGB16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::RGBA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::GRAY8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::GRAYA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::GRAY16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
-                    ImageData::GRAYA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, Format::Png)),
+                    ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::RGBA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::RGB16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::RGBA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::GRAY8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::GRAYA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::GRAY16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
+                    ImageData::GRAYA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
                 }.ok_or(lodepng::Error(59))
             },
         }

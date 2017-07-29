@@ -96,19 +96,22 @@ impl Loader {
             } else {
                 None
             };
+            let meta = ImageMeta {
+                format: Format::Jpeg
+            };
 
             let img = match dinfo.image()? {
                 mozjpeg::Format::RGB(mut dinfo) => {
                     let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
-                    rgb.to_image(profile, width, height, true, Format::Jpeg)
+                    rgb.to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::CMYK(mut dinfo) => {
                     let mut cmyk: Vec<CMYK> = dinfo.read_scanlines().unwrap();
-                    cmyk.to_image(profile, width, height, true, Format::Jpeg)
+                    cmyk.to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::Gray(mut dinfo) => {
                     let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
-                    g.to_image(profile, width, height, true, Format::Jpeg)
+                    g.to_image(profile, width, height, true, meta)
                 },
             };
             Ok((img, orientation))
