@@ -9,7 +9,7 @@ pub type GRAY16 = lodepng::Grey<u16>;
 pub type GRAYA8 = lodepng::GreyAlpha<u8>;
 pub type GRAYA16 = lodepng::GreyAlpha<u16>;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ImageMeta {
     pub format: Format,
 }

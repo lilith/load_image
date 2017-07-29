@@ -97,7 +97,7 @@ impl Loader {
                 None
             };
             let meta = ImageMeta {
-                format: Format::Jpeg
+                format: Format::Jpeg, ..ImageMeta::default()
             };
 
             let img = match dinfo.image()? {

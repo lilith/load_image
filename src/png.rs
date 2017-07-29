@@ -32,7 +32,7 @@ impl Loader {
         };
 
         let meta = ImageMeta {
-            format: Format::Png
+            format: Format::Png, ..ImageMeta::default()
         };
 
         match res {

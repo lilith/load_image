@@ -204,13 +204,13 @@ fn image_cmyk() {
 
     let diff = compare(&im1, &im2);
     assert!(diff <= 0.002);
-    assert_eq!(Format::Jpeg, im2.format);
+    assert_eq!(Format::Jpeg, im2.meta.format);
 }
 
 #[test]
 fn image_bw() {
     let res = load_image("tests/img/1bit.png", false).unwrap();
-    assert_eq!(Format::Png, res.format);
+    assert_eq!(Format::Png, res.meta.format);
     assert!(res.is_opaque());
 }
 
@@ -229,7 +229,7 @@ fn pngtestsuite() {
             assert!(res.is_err());
         } else {
             let res = res.unwrap();
-            assert_eq!(Format::Png, res.format);
+            assert_eq!(Format::Png, res.meta.format);
         }
     }
 }
@@ -245,8 +245,8 @@ fn exif_test() {
         assert!(actual.is_opaque());
 
         assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
-        assert_eq!(Format::Jpeg, actual.format);
-        assert_eq!(Format::Png, expected.format);
+        assert_eq!(Format::Jpeg, actual.meta.format);
+        assert_eq!(Format::Png, expected.meta.format);
     }
 }
 

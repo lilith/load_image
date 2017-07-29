@@ -5,3 +5,9 @@ pub enum Format {
     Jpeg,
     Png,
 }
+
+impl Default for Format {
+    fn default() -> Self {
+        Format::Unknown
+    }
+}
