@@ -56,7 +56,7 @@ impl Loader {
                 Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta))
             },
             lodepng::Image::RawData(rawdata) => {
-                let mut png = state.info_raw_mut();
+                let png = state.info_raw_mut();
                 let depth = png.bitdepth as u8;
                 let pal = match png.colortype() {
                     lodepng::LCT_PALETTE => {
