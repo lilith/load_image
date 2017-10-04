@@ -62,7 +62,7 @@ impl Loader {
     pub fn load_data_with_stat(&self, data: &[u8], meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
         if data.starts_with(b"\x89PNG") {
             self.load_png(data, meta)
-        } else if data[0] == 0xFF {
+        } else if data.len() > 0 && data[0] == 0xFF {
             self.load_jpeg(data, meta)
         } else {
             Err(lodepng::Error(28))
