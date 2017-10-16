@@ -37,35 +37,35 @@ impl Loader {
         match res {
             lodepng::Image::RGBA(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta))
+                Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta))
             },
-            lodepng::Image::RGB(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta)),
-            lodepng::Image::RGB16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::RGB(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::RGB16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta)),
             lodepng::Image::RGBA16(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta))
+                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta))
             },
-            lodepng::Image::Grey(mut image) => Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta)),
-            lodepng::Image::Grey16(mut image) => Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::Grey(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::Grey16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta)),
             lodepng::Image::GreyAlpha(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_image(profile, image.width, image.height, opaque, meta))
+                Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta))
             },
             lodepng::Image::GreyAlpha16(mut image) => {
                 let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.as_mut().to_native().to_image(profile, image.width, image.height, opaque, meta))
+                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta))
             },
             lodepng::Image::RawData(rawdata) => {
                 let png = state.info_raw_mut();
-                let depth = png.bitdepth as u8;
+                let depth = png.bitdepth() as u8;
                 let pal = match png.colortype() {
-                    lodepng::LCT_PALETTE => {
+                    lodepng::ColorType::PALETTE => {
                         let pal = png.palette_mut();
                         let ncolors = pal.len();
                         let opaque = opaque || is_opaque(pal);
                         pal.to_image(profile, 1, ncolors, opaque, meta.clone())
                     },
-                    lodepng::LCT_GREY => {
+                    lodepng::ColorType::GREY => {
                         let ncolors = 1<<depth;
                         let max = ncolors-1;
                         let mut graypal: Vec<_> = (0..ncolors).map(|c| lodepng::Grey((c*255/max) as u8)).collect();
