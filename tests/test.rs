@@ -34,8 +34,8 @@ fn convert(img: &Image) -> ImgVec<RGBA16> {
 fn compare(left: &Image, right: &Image) -> f64 {
     let left = convert(left);
     let right = convert(right);
-    assert_eq!(left.width, right.width);
-    assert_eq!(left.height, right.height);
+    assert_eq!(left.width(), right.width());
+    assert_eq!(left.height(), right.height());
     let ppx = left.buf
         .iter()
         .zip(right.buf.iter())
@@ -50,7 +50,7 @@ fn compare(left: &Image, right: &Image) -> f64 {
             };
             (d.r*d.r + d.g*d.g + d.b*d.b + d.a*d.a) as u64 >> 16
         })
-        .sum::<u64>() / ((left.width as u64 * left.height as u64) << 24);
+        .sum::<u64>() / ((left.width() as u64 * left.height() as u64) << 24);
     ppx as f64 / (1<<24) as f64
 }
 
