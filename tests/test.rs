@@ -48,7 +48,7 @@ fn compare(left: &Image, right: &Image) -> f64 {
                 b: (a.b*a.a - b.b*b.a),
                 a: (a.a*65536 - b.a*65536),
             };
-            (d.r*d.r + d.g*d.g + d.b*d.b + d.a*d.a) as u64 >> 16
+            (d.r.saturating_mul(d.r).saturating_add(d.g.saturating_mul(d.g)).saturating_add(d.b.saturating_mul(d.b)).saturating_add(d.a.saturating_mul(d.a))) as u64 >> 16
         })
         .sum::<u64>() / ((left.width() as u64 * left.height() as u64) << 24);
     ppx as f64 / (1<<24) as f64
