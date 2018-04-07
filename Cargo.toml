@@ -5,7 +5,7 @@ keywords = ["load_image"]
 license = "AGPL-3.0"
 name = "load_image"
 publish = false
-version = "2.10.4"
+version = "2.10.5"
 
 [dependencies]
 imgref = "1.3.3"
@@ -13,10 +13,7 @@ lcms2 = "5.0.1"
 lodepng = "2.1.2"
 rexif = "0.3.5"
 rgb = "0.8.6"
-
-[dependencies.mozjpeg]
-path = "../mozjpeg-rust"
-version = "0.8.0"
+mozjpeg = "0.8.0"
 
 [features]
 static = ["lcms2/static"]
