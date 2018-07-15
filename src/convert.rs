@@ -1,4 +1,5 @@
 use rgb::*;
+use rgb::alt::*;
 use image::*;
 use imgref::*;
 use lcms2::*;

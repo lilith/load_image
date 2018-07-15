@@ -1,6 +1,7 @@
 use lodepng;
 use lcms2::*;
 use rgb::*;
+use rgb::alt::*;
 use image::*;
 use format::*;
 use pixel_format::*;

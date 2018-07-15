@@ -8,6 +8,7 @@ use convert::*;
 use endian::*;
 use loader::*;
 use alpha::is_opaque;
+use rgb::alt::Gray;
 
 impl Loader {
     pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
@@ -68,7 +69,7 @@ impl Loader {
                     lodepng::ColorType::GREY => {
                         let ncolors = 1<<depth;
                         let max = ncolors-1;
-                        let mut graypal: Vec<_> = (0..ncolors).map(|c| lodepng::Grey((c*255/max) as u8)).collect();
+                        let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c*255/max) as u8)).collect();
                         graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
                     _ => return Err(lodepng::Error(59))

@@ -1,18 +1,13 @@
-use lodepng;
 use imgref::*;
 use convert::*;
 use rgb::*;
+use rgb::alt::*;
 use format::*;
 use std::fs;
 #[cfg(feature="stat")]
 use std::io;
 #[cfg(feature="stat")]
 use std::time;
-
-pub type GRAY8 = lodepng::Grey<u8>;
-pub type GRAY16 = lodepng::Grey<u16>;
-pub type GRAYA8 = lodepng::GreyAlpha<u8>;
-pub type GRAYA16 = lodepng::GreyAlpha<u16>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ImageMeta {
