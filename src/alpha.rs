@@ -1,5 +1,5 @@
-use rgb::*;
 use rgb::alt::*;
+use rgb::*;
 
 pub trait IsTransparentPixel {
     fn is_transparent(&self) -> bool;

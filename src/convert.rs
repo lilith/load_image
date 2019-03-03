@@ -1,10 +1,10 @@
-use rgb::*;
-use rgb::alt::*;
-use image::*;
+use crate::image::*;
+use crate::pixel_format::*;
+use crate::profiles;
 use imgref::*;
 use lcms2::*;
-use profiles;
-use pixel_format::*;
+use rgb::alt::*;
+use rgb::*;
 
 pub trait CopyAlpha<Converted: Copy> where Self: Copy {
     fn copy_alpha(src: &[Self], dst: &mut [Converted]);
@@ -141,7 +141,7 @@ macro_rules! impl_img {
                 }
             }
         }
-    }
+    };
 }
 
 impl_img!(RGB8);

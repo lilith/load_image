@@ -1,4 +1,4 @@
-extern crate load_image;
+use load_image;
 
 fn main() {
     let path = std::env::args().nth(1).expect("File name");

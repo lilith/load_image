@@ -1,23 +1,23 @@
-use lodepng;
+use crate::convert::*;
+use crate::format::*;
+use crate::image::*;
+use crate::loader::*;
+use crate::pixel_format::*;
+use crate::profiles;
 use lcms2::*;
-use rgb::*;
-use rgb::alt::*;
-use image::*;
-use format::*;
-use pixel_format::*;
-use convert::*;
-use loader::*;
-use profiles;
-use std::panic;
+use lodepng;
 use mozjpeg;
 use mozjpeg::{Decompress, Marker};
 use rexif;
+use rgb::alt::*;
+use rgb::*;
 use std::fs;
+use std::panic;
 
 const ADOBE98_CHROMATICITIES: &'static [f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
 
 impl Loader {
-    fn get_jpeg_profile(&self, dinfo: &Decompress) -> Option<Profile> {
+    fn get_jpeg_profile(&self, dinfo: &Decompress<'_>) -> Option<Profile> {
         let mut profile_markers = Vec::new();
 
         for m in dinfo.markers() {
@@ -43,7 +43,7 @@ impl Loader {
         profile
     }
 
-    fn get_exif_data(dinfo: &Decompress) -> (u16, bool) {
+    fn get_exif_data(dinfo: &Decompress<'_>) -> (u16, bool) {
         let mut orientation = 1;
         let mut is_adobe_1998 = false;
 

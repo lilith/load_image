@@ -1,5 +1,5 @@
-use rgb::*;
 use rgb::alt::*;
+use rgb::*;
 
 pub trait NativeEndian {
     fn to_native(&mut self) -> &mut Self;

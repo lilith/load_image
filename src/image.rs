@@ -1,12 +1,12 @@
+use crate::convert::*;
+use crate::format::*;
 use imgref::*;
-use convert::*;
-use rgb::*;
 use rgb::alt::*;
-use format::*;
+use rgb::*;
 use std::fs;
-#[cfg(feature="stat")]
+#[cfg(feature = "stat")]
 use std::io;
-#[cfg(feature="stat")]
+#[cfg(feature = "stat")]
 use std::time;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

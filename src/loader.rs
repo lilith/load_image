@@ -1,11 +1,10 @@
-
-use std::io;
-use std::io::Read;
-use std::fs;
-use std::path::Path;
-use image::*;
+use crate::image::*;
 use lcms2::*;
 use lodepng;
+use std::fs;
+use std::io;
+use std::io::Read;
+use std::path::Path;
 
 #[derive(Eq, PartialEq)]
 pub enum Profiles {

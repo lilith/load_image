@@ -1,8 +1,5 @@
-extern crate load_image;
-extern crate imgref;
-extern crate rgb;
-use load_image::*;
 use imgref::*;
+use load_image::*;
 use rgb::*;
 
 fn tou16(v: u8) -> u16 {

@@ -1,28 +1,19 @@
-#![allow(unknown_lints)]
-
-extern crate lodepng;
-extern crate lcms2;
-extern crate mozjpeg;
-extern crate rexif;
-extern crate rgb;
-extern crate imgref;
-
-mod pixel_format;
-mod endian;
-mod png;
-mod jpeg;
-mod image;
-mod loader;
-mod convert;
-mod format;
 mod alpha;
+mod convert;
+mod endian;
+mod format;
+mod image;
+mod jpeg;
+mod loader;
+mod pixel_format;
+mod png;
 mod profiles;
 
+pub use crate::convert::FromOptions;
+pub use crate::format::*;
+pub use crate::image::*;
+pub use crate::loader::*;
 use std::path::Path;
-pub use image::*;
-pub use loader::*;
-pub use format::*;
-pub use convert::FromOptions;
 
 #[inline]
 pub fn load_image<P: AsRef<Path>>(path: P, opaque: bool) -> Result<Image, lodepng::Error> {

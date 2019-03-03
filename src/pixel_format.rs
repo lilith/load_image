@@ -1,6 +1,6 @@
 use lcms2::*;
-use rgb::*;
 use rgb::alt::*;
+use rgb::*;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]

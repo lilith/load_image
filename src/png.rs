@@ -1,14 +1,14 @@
-use image::*;
-use lodepng;
-use lcms2::*;
-use format::*;
-use std::fs;
+use crate::alpha::is_opaque;
+use crate::convert::*;
+use crate::endian::*;
+use crate::format::*;
+use crate::image::*;
+use crate::loader::*;
 use imgref::*;
-use convert::*;
-use endian::*;
-use loader::*;
-use alpha::is_opaque;
+use lcms2::*;
+use lodepng;
 use rgb::alt::Gray;
+use std::fs;
 
 impl Loader {
     pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
