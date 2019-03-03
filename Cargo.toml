@@ -6,7 +6,8 @@ license = "AGPL-3.0"
 name = "load_image"
 version = "2.12.0"
 edition = "2018"
-include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING"]
+include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "README.md"]
+readme = "README.md"
 
 [dependencies]
 imgref = "1.3.3"
