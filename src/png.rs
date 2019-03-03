@@ -11,7 +11,7 @@ use rgb::alt::Gray;
 use std::fs;
 
 impl Loader {
-    pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
+    pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         let opaque = self.opaque;
         let mut state = lodepng::State::new();
         state.color_convert(false);
@@ -20,7 +20,7 @@ impl Loader {
 
         let (width, height) = state.inspect(data)?;
         if width*height > 10000*10000 {
-            return Err(lodepng::Error(92));
+            return Err(crate::Error(92));
         }
 
         let res = state.decode(data)?;
@@ -72,7 +72,7 @@ impl Loader {
                         let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c*255/max) as u8)).collect();
                         graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
-                    _ => return Err(lodepng::Error(59))
+                    _ => return Err(crate::Error(59))
                 };
                 match pal.bitmap {
                     ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
@@ -83,7 +83,7 @@ impl Loader {
                     ImageData::GRAYA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
                     ImageData::GRAY16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
                     ImageData::GRAYA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
-                }.ok_or(lodepng::Error(59))
+                }.ok_or(crate::Error(59))
             },
         }
     }

@@ -5,7 +5,6 @@ use crate::loader::*;
 use crate::pixel_format::*;
 use crate::profiles;
 use lcms2::*;
-use lodepng;
 use mozjpeg;
 use mozjpeg::{Decompress, Marker};
 use rexif;
@@ -74,7 +73,7 @@ impl Loader {
         return (orientation, is_adobe_1998);
     }
 
-    pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
+    pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         let thread_res = panic::catch_unwind(|| {
             let dinfo = Decompress::with_markers(&[
                 Marker::APP(1), /* Exif */
@@ -85,7 +84,7 @@ impl Loader {
             let height = dinfo.height();
 
             if width*height > 10000*10000 {
-                return Err(lodepng::Error(92));
+                return Err(crate::Error(92));
             }
 
             let (orientation, is_adobe_1998) = Self::get_exif_data(&dinfo);
@@ -118,7 +117,7 @@ impl Loader {
         });
 
         if thread_res.is_err() {
-            return Err(lodepng::Error(28));
+            return Err(crate::Error(28));
         }
         let (img, orientation) = thread_res.unwrap()?;
 

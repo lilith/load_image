@@ -1,6 +1,5 @@
 use crate::image::*;
 use lcms2::*;
-use lodepng;
 use std::fs;
 use std::io;
 use std::io::Read;
@@ -8,8 +7,11 @@ use std::path::Path;
 
 #[derive(Eq, PartialEq)]
 pub enum Profiles {
+    /// Apply all profiles
     All,
+    /// Do not support profiles (gives incorrectly-looking images, but doesn't change pixel values)
     None,
+    /// Apply profiles only if they don't appear to be sRGB
     NonsRGB,
 }
 
@@ -27,19 +29,21 @@ impl Loader {
         }
     }
 
+    /// If true, alpha channel will be discarded
     #[inline]
     pub fn opaque(&mut self, v: bool) -> &mut Self {
         self.opaque = v;
         self
     }
 
+    /// Strategy for converting color profiles
     #[inline]
     pub fn profiles(&mut self, convert_profiles: Profiles) -> &mut Self {
         self.profiles = convert_profiles;
         self
     }
 
-    pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, lodepng::Error> {
+    pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, crate::Error> {
         let path = path.as_ref();
         let mut data = Vec::new();
         let (data, stat) = if path.as_os_str() == "-" {
@@ -54,21 +58,21 @@ impl Loader {
         self.load_data_with_stat(&data, stat)
     }
 
-    pub fn load_data(&self, data: &[u8]) -> Result<Image, lodepng::Error> {
+    pub fn load_data(&self, data: &[u8]) -> Result<Image, crate::Error> {
         self.load_data_with_stat(data, None)
     }
 
-    pub fn load_data_with_stat(&self, data: &[u8], meta: Option<fs::Metadata>) -> Result<Image, lodepng::Error> {
+    fn load_data_with_stat(&self, data: &[u8], meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         if data.starts_with(b"\x89PNG") {
             self.load_png(data, meta)
         } else if data.len() > 0 && data[0] == 0xFF {
             self.load_jpeg(data, meta)
         } else {
-            Err(lodepng::Error(28))
+            Err(crate::Error(28))
         }
     }
 
-    pub fn process_profile(&self, profile: LCMSResult<Profile>) -> Option<Profile> {
+    pub(crate) fn process_profile(&self, profile: LCMSResult<Profile>) -> Option<Profile> {
         match profile {
             Err(_) => None,
             Ok(profile) => {
