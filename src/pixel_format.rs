@@ -11,6 +11,9 @@ pub struct CMYK {
     pub k: u8,
 }
 
+unsafe impl rgb::Pod for CMYK {}
+unsafe impl rgb::Zeroable for CMYK {}
+
 pub trait LcmsPixelFormat where Self: Copy {
     fn pixel_format() -> (PixelFormat, ColorSpaceSignature);
 }

@@ -68,7 +68,7 @@ impl Loader {
         } else if data.len() > 0 && data[0] == 0xFF {
             self.load_jpeg(data, meta)
         } else {
-            Err(crate::Error(28))
+            Err(crate::Error::new(28))
         }
     }
 

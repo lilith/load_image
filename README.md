@@ -1,8 +1,8 @@
 # Load image as sRGB
 
-Loads a JPEG or PNG image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
+Glue code for a few libraries that correctly loads a JPEG or PNG image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
 
-Requires Rust 1.33+.
+For Rust 1.43 or later.
 
 
 ```toml

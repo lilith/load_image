@@ -133,11 +133,12 @@ macro_rules! impl_img {
     ($px:ident) => {
         impl FromOptions<ImgVec<$px>> for Image {
             fn from_opts(bitmap: ImgVec<$px>, meta: ImageMeta) -> Image {
+                let (bitmap, width, height) = bitmap.into_contiguous_buf();
                 Image {
-                    width: bitmap.width(),
-                    height: bitmap.height(),
+                    width,
+                    height,
                     meta,
-                    bitmap: ImageData::$px(bitmap.buf),
+                    bitmap: ImageData::$px(bitmap),
                 }
             }
         }

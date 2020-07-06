@@ -84,7 +84,7 @@ impl Loader {
             let height = dinfo.height();
 
             if width*height > 10000*10000 {
-                return Err(crate::Error(92));
+                return Err(crate::Error::new(92));
             }
 
             let (orientation, is_adobe_1998) = Self::get_exif_data(&dinfo);
@@ -117,7 +117,7 @@ impl Loader {
         });
 
         if thread_res.is_err() {
-            return Err(crate::Error(28));
+            return Err(crate::Error::new(28));
         }
         let (img, orientation) = thread_res.unwrap()?;
 

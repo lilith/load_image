@@ -33,10 +33,9 @@ fn compare(left: &Image, right: &Image) -> f64 {
     let right = convert(right);
     assert_eq!(left.width(), right.width());
     assert_eq!(left.height(), right.height());
-    let ppx = left.buf
-        .iter()
-        .zip(right.buf.iter())
-        .map(|(&a, &b)| {
+    let ppx = left.pixels()
+        .zip(right.pixels())
+        .map(|(a, b)| {
             let a = a.map(|c|c as i64);
             let b = b.map(|c|c as i64);
             let d = RGBA{
