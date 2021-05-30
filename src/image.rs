@@ -120,6 +120,36 @@ impl Image {
         }
     }
 
+    /// Returns an enum with `Img<&[Pixel]>`
+    #[inline]
+    pub fn as_imgref(&self) -> ImgRefKind<'_> {
+        match self.bitmap {
+            ImageData::RGB8(ref bitmap) => ImgRefKind::RGB8(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::RGBA8(ref bitmap) => ImgRefKind::RGBA8(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::RGB16(ref bitmap) => ImgRefKind::RGB16(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::RGBA16(ref bitmap) => ImgRefKind::RGBA16(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::GRAY8(ref bitmap) => ImgRefKind::GRAY8(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::GRAY16(ref bitmap) => ImgRefKind::GRAY16(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::GRAYA8(ref bitmap) => ImgRefKind::GRAYA8(ImgRef::new(bitmap, self.width, self.height)),
+            ImageData::GRAYA16(ref bitmap) => ImgRefKind::GRAYA16(ImgRef::new(bitmap, self.width, self.height)),
+        }
+    }
+
+    /// Returns an enum with `Img<Vec<Pixel>>`
+    #[inline]
+    pub fn into_imgvec(self) -> ImgVecKind {
+        match self.bitmap {
+            ImageData::RGB8(bitmap) => ImgVecKind::RGB8(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::RGBA8(bitmap) => ImgVecKind::RGBA8(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::RGB16(bitmap) => ImgVecKind::RGB16(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::RGBA16(bitmap) => ImgVecKind::RGBA16(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::GRAY8(bitmap) => ImgVecKind::GRAY8(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::GRAY16(bitmap) => ImgVecKind::GRAY16(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::GRAYA8(bitmap) => ImgVecKind::GRAYA8(ImgVec::new(bitmap, self.width, self.height)),
+            ImageData::GRAYA16(bitmap) => ImgVecKind::GRAYA16(ImgVec::new(bitmap, self.width, self.height)),
+        }
+    }
+
     pub fn rotated(&self, r: Rotate) -> Image {
         let meta = self.meta.clone();
         match self.bitmap {
