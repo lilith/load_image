@@ -1,3 +1,4 @@
+/// File type of the image
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum Format {
     Unknown,

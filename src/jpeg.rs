@@ -4,12 +4,10 @@ use crate::image::*;
 use crate::loader::*;
 use crate::pixel_format::*;
 use crate::profiles;
+use crate::rgb::*;
 use lcms2::*;
-use mozjpeg;
 use mozjpeg::{Decompress, Marker};
-use rexif;
-use rgb::alt::*;
-use rgb::*;
+use mozjpeg;
 use std::fs;
 use std::panic;
 

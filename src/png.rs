@@ -4,10 +4,10 @@ use crate::endian::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
-use imgref::*;
+use crate::imgref::*;
 use lcms2::*;
 use lodepng;
-use rgb::alt::Gray;
+use crate::rgb::Gray;
 use std::fs;
 
 impl Loader {

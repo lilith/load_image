@@ -1,10 +1,9 @@
 use crate::image::*;
+use crate::imgref::*;
 use crate::pixel_format::*;
 use crate::profiles;
-use imgref::*;
+use crate::rgb::*;
 use lcms2::*;
-use rgb::alt::*;
-use rgb::*;
 
 pub trait CopyAlpha<Converted: Copy> where Self: Copy {
     fn copy_alpha(src: &[Self], dst: &mut [Converted]);
@@ -125,6 +124,7 @@ impl From<Image> for Img<ImageData> {
     }
 }
 
+/// Convert `ImgVec` to an `Image` by providing metadata
 pub trait FromOptions<T> {
     fn from_opts(t: T, options: ImageMeta) -> Self;
 }
