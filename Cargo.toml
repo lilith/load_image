@@ -13,8 +13,8 @@ homepage = "https://imageoptim.com/api"
 [dependencies]
 imgref = "1.9.0"
 lcms2 = "5.4.1"
-lodepng = "3.4.5"
-rexif = "0.7.0"
+lodepng = "3.4.6"
+rexif = "0.7.3"
 rgb = "0.8.27"
 mozjpeg = "0.9.0"
 

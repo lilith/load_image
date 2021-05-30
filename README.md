@@ -2,7 +2,7 @@
 
 Glue code for a few libraries that correctly loads a JPEG or PNG image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
 
-For Rust 1.43 or later.
+For Rust 1.51 or later.
 
 
 ```toml

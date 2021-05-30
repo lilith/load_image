@@ -72,6 +72,8 @@ pub enum Rotate {
 }
 
 impl Image {
+    /// True if pixel format doesn't support alpha. This function doesn't check pixels.
+    #[inline]
     pub fn is_opaque(&self) -> bool {
         match self.bitmap {
             ImageData::RGB8(_) => true,

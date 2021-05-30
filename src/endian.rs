@@ -6,6 +6,7 @@ pub trait NativeEndian {
 }
 
 impl NativeEndian for [RGB16] {
+    #[inline]
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
             *n = RGB {
@@ -19,6 +20,7 @@ impl NativeEndian for [RGB16] {
 }
 
 impl NativeEndian for [RGBA16] {
+    #[inline]
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
             *n = RGBA {

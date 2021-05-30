@@ -21,7 +21,7 @@ pub struct Loader {
 }
 
 impl Loader {
-    #[inline]
+    #[inline(always)]
     pub fn new() -> Self {
         Loader {
             opaque: false,
@@ -30,14 +30,14 @@ impl Loader {
     }
 
     /// If true, alpha channel will be discarded
-    #[inline]
+    #[inline(always)]
     pub fn opaque(&mut self, v: bool) -> &mut Self {
         self.opaque = v;
         self
     }
 
     /// Strategy for converting color profiles
-    #[inline]
+    #[inline(always)]
     pub fn profiles(&mut self, convert_profiles: Profiles) -> &mut Self {
         self.profiles = convert_profiles;
         self
@@ -58,14 +58,17 @@ impl Loader {
         self.load_data_with_stat(&data, stat)
     }
 
+    #[inline(always)]
     pub fn load_data(&self, data: &[u8]) -> Result<Image, crate::Error> {
         self.load_data_with_stat(data, None)
     }
 
     fn load_data_with_stat(&self, data: &[u8], meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         if data.starts_with(b"\x89PNG") {
-            self.load_png(data, meta)
-        } else if data.len() > 0 && data[0] == 0xFF {
+            return self.load_png(data, meta);
+        }
+
+        if data.get(0) == Some(&0xFF) {
             self.load_jpeg(data, meta)
         } else {
             Err(crate::Error::new(28))
