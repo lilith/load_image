@@ -73,6 +73,11 @@ impl Loader {
             return self.load_avif(data, meta).map_err(|_| crate::Error::new(28));
         }
 
+        #[cfg(feature = "webp")]
+        if data.get(0..4) == Some(b"RIFF") {
+            return self.load_webp(data, meta).map_err(|_| crate::Error::new(28));
+        }
+
         if data.get(0) == Some(&0xFF) {
             self.load_jpeg(data, meta)
         } else {

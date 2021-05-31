@@ -12,6 +12,9 @@ mod profiles;
 #[cfg(feature = "avif")]
 mod avif;
 
+#[cfg(feature = "webp")]
+mod webp;
+
 pub use crate::convert::FromOptions;
 pub use crate::format::*;
 pub use crate::image::*;
