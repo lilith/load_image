@@ -153,3 +153,29 @@ impl_img!(GRAY8);
 impl_img!(GRAY16);
 impl_img!(GRAYA8);
 impl_img!(GRAYA16);
+
+impl FromOptions<ImgVec<u8>> for Image {
+    fn from_opts(bitmap: ImgVec<u8>, meta: ImageMeta) -> Image {
+        let bitmap = bitmap.new_buf(bitmap.buf().as_pixels());
+        let (bitmap, width, height) = bitmap.to_contiguous_buf();
+        Image {
+            width,
+            height,
+            meta,
+            bitmap: ImageData::GRAY8(bitmap.into_owned()),
+        }
+    }
+}
+
+impl FromOptions<ImgVec<u16>> for Image {
+    fn from_opts(bitmap: ImgVec<u16>, meta: ImageMeta) -> Image {
+        let bitmap = bitmap.new_buf(bitmap.buf().as_pixels());
+        let (bitmap, width, height) = bitmap.to_contiguous_buf();
+        Image {
+            width,
+            height,
+            meta,
+            bitmap: ImageData::GRAY16(bitmap.into_owned()),
+        }
+    }
+}

@@ -68,6 +68,11 @@ impl Loader {
             return self.load_png(data, meta);
         }
 
+        #[cfg(feature = "avif")]
+        if data.get(4..4+8) == Some(b"ftypavif") {
+            return self.load_avif(data, meta).map_err(|_| crate::Error::new(28));
+        }
+
         if data.get(0) == Some(&0xFF) {
             self.load_jpeg(data, meta)
         } else {

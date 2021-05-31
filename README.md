@@ -1,6 +1,6 @@
 # Load image as sRGB
 
-Glue code for a few libraries that correctly loads a JPEG or PNG image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
+Glue code for a few libraries that correctly loads a JPEG, PNG, or (optionally) AVIF image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
 
 For Rust 1.51 or later.
 

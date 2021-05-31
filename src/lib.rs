@@ -9,6 +9,9 @@ mod pixel_format;
 mod png;
 mod profiles;
 
+#[cfg(feature = "avif")]
+mod avif;
+
 pub use crate::convert::FromOptions;
 pub use crate::format::*;
 pub use crate::image::*;
