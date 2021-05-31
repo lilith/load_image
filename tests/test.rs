@@ -1,6 +1,6 @@
 use load_image::*;
-use load_image::imgref::*;
-use load_image::rgb::*;
+use load_image::export::imgref::*;
+use load_image::export::rgb::*;
 
 fn tou16(v: u8) -> u16 {
     let v = v as u16;

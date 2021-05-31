@@ -1,8 +1,9 @@
 use crate::image::*;
-use crate::imgref::*;
+use imgref::*;
 use crate::pixel_format::*;
 use crate::profiles;
-use crate::rgb::*;
+use rgb::*;
+use rgb::alt::*;
 use lcms2::*;
 
 pub trait CopyAlpha<Converted: Copy> where Self: Copy {

@@ -6,42 +6,7 @@ use std::io;
 #[cfg(feature = "stat")]
 use std::time;
 
-/// Re-export of the [`rgb`](https://lib.rs/crates/rgb) crate
-pub mod rgb {
-    pub use rgb::*;
-    pub use rgb::alt::*;
-}
-
-/// Re-export of the [`imgref`](https://lib.rs/crates/imgref) crate
-pub mod imgref {
-    pub use imgref::*;
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    pub enum ImgRefKind<'data> {
-        RGB8(ImgRef<'data, crate::rgb::RGB8>),
-        RGBA8(ImgRef<'data, crate::rgb::RGBA8>),
-        RGB16(ImgRef<'data, crate::rgb::RGB16>),
-        RGBA16(ImgRef<'data, crate::rgb::RGBA16>),
-        GRAY8(ImgRef<'data, crate::rgb::GRAY8>),
-        GRAY16(ImgRef<'data, crate::rgb::GRAY16>),
-        GRAYA8(ImgRef<'data, crate::rgb::GRAYA8>),
-        GRAYA16(ImgRef<'data, crate::rgb::GRAYA16>),
-    }
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    pub enum ImgVecKind {
-        RGB8(ImgVec<crate::rgb::RGB8>),
-        RGBA8(ImgVec<crate::rgb::RGBA8>),
-        RGB16(ImgVec<crate::rgb::RGB16>),
-        RGBA16(ImgVec<crate::rgb::RGBA16>),
-        GRAY8(ImgVec<crate::rgb::GRAY8>),
-        GRAY16(ImgVec<crate::rgb::GRAY16>),
-        GRAYA8(ImgVec<crate::rgb::GRAYA8>),
-        GRAYA16(ImgVec<crate::rgb::GRAYA16>),
-    }
-}
-
-use crate::imgref::{ImgRef, ImgRefKind, ImgVec, ImgVecKind};
+use crate::export::imgref::{ImgRef, ImgRefKind, ImgVec, ImgVecKind};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ImageMeta {
@@ -83,14 +48,14 @@ pub struct Image {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageData {
-    RGB8(Vec<crate::rgb::RGB8>),
-    RGBA8(Vec<crate::rgb::RGBA8>),
-    RGB16(Vec<crate::rgb::RGB16>),
-    RGBA16(Vec<crate::rgb::RGBA16>),
-    GRAY8(Vec<crate::rgb::GRAY8>),
-    GRAY16(Vec<crate::rgb::GRAY16>),
-    GRAYA8(Vec<crate::rgb::GRAYA8>),
-    GRAYA16(Vec<crate::rgb::GRAYA16>),
+    RGB8(Vec<rgb::RGB8>),
+    RGBA8(Vec<rgb::RGBA8>),
+    RGB16(Vec<rgb::RGB16>),
+    RGBA16(Vec<rgb::RGBA16>),
+    GRAY8(Vec<rgb::alt::GRAY8>),
+    GRAY16(Vec<rgb::alt::GRAY16>),
+    GRAYA8(Vec<rgb::alt::GRAYA8>),
+    GRAYA16(Vec<rgb::alt::GRAYA16>),
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
