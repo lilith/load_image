@@ -20,6 +20,7 @@ mozjpeg = "0.9.1"
 aom-decode = { version = "0.2.0", optional = true }
 num_cpus = { version = "1.13.0", optional = true }
 libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
+fallible_collections = "0.4.3"
 
 [features]
 stat = []

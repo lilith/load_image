@@ -29,10 +29,11 @@ impl Loader {
         }
     }
 
-    /// If true, alpha channel will be discarded
+    /// If true, alpha channel will be discarded.
+    /// Default is false, which supports transparency.
     #[inline(always)]
-    pub fn opaque(&mut self, v: bool) -> &mut Self {
-        self.opaque = v;
+    pub fn opaque(&mut self, discard_alpha: bool) -> &mut Self {
+        self.opaque = discard_alpha;
         self
     }
 
@@ -43,15 +44,22 @@ impl Loader {
         self
     }
 
+    /// `-` is treated as stdin
     pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, crate::Error> {
         let path = path.as_ref();
         let mut data = Vec::new();
         let (data, stat) = if path.as_os_str() == "-" {
-            io::stdin().read_to_end(&mut data)?;
+            fallible_collections::FallibleVec::try_reserve(&mut data, 1<<16)?; // arbitrary, better than 0
+            io::stdin().lock().read_to_end(&mut data)?;
             (data, None)
         } else {
             let mut file = fs::File::open(path)?;
             let stat = file.metadata()?;
+            #[cfg(unix)] {
+                use std::os::unix::prelude::MetadataExt; // Ugh, this is so bad
+                // +1 due to read_to_end's EOF check
+                fallible_collections::FallibleVec::try_reserve(&mut data, stat.size() as usize + 1)?;
+            }
             file.read_to_end(&mut data)?;
             (data, Some(stat))
         };
