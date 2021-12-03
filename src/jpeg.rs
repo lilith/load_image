@@ -4,10 +4,10 @@ use crate::image::*;
 use crate::loader::*;
 use crate::pixel_format::*;
 use crate::profiles;
-use rgb::*;
-use rgb::alt::*;
 use lcms2::*;
 use mozjpeg::{Decompress, Marker};
+use rgb::alt::*;
+use rgb::*;
 
 use std::fs;
 use std::panic;
@@ -26,8 +26,6 @@ impl Loader {
                 profile_markers.push(data);
             }
         }
-
-        
 
         if !profile_markers.is_empty() {
             profile_markers.sort_by_key(|data| data[12]);

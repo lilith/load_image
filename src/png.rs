@@ -67,9 +67,9 @@ impl Loader {
                         pal.to_image(profile, 1, ncolors, opaque, meta.clone())
                     },
                     lodepng::ColorType::GREY => {
-                        let ncolors = 1<<depth;
-                        let max = ncolors-1;
-                        let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c*255/max) as u8)).collect();
+                        let ncolors = 1 << depth;
+                        let max = ncolors - 1;
+                        let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c * 255 / max) as u8)).collect();
                         graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
                     _ => return Err(crate::Error::new(59))

@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use load_image::ImageData;
+use std::path::PathBuf;
 
 fn main() {
     let path = PathBuf::from(std::env::args_os().nth(1).expect("File name"));

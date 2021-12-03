@@ -1,10 +1,10 @@
-use load_image::*;
 use load_image::export::imgref::*;
 use load_image::export::rgb::*;
+use load_image::*;
 
 fn tou16(v: u8) -> u16 {
     let v = v as u16;
-    (v<<8)|v
+    (v << 8) | v
 }
 
 #[cfg(test)]
@@ -99,7 +99,6 @@ fn image_implied1998_profile() {
 
 #[test]
 fn image_gray_profile() {
-
     let gp1 = load_image("tests/img/gray-profile.png", false).unwrap();
     let gp1o = load_image("tests/img/gray-profile.png", true).unwrap();
     let gp2 = load_image("tests/img/gray-profile2.png", false).unwrap();
@@ -124,7 +123,6 @@ fn image_gray_profile() {
 
 #[test]
 fn image_load1() {
-
     let prof_jpg = load_image("tests/img/profile.jpg", false).unwrap();
     let prof_png = load_image("tests/img/profile.png", false).unwrap();
     let diff = compare(&prof_jpg, &prof_png);
@@ -181,7 +179,6 @@ fn image_load_some_profiles() {
 
 #[test]
 fn image_4bit() {
-
     let im1 = load_image("tests/img/tile1.png", false).unwrap();
     let im2 = load_image("tests/img/tile2.png", false).unwrap();
     assert!(!im1.is_opaque());
@@ -192,7 +189,6 @@ fn image_4bit() {
 
 #[test]
 fn image_cmyk() {
-
     let im1 = load_image("tests/img/cmyk.png", true).unwrap();
     let im2 = load_image("tests/img/cmyk.jpg", true).unwrap();
     assert!(im1.is_opaque());
@@ -212,7 +208,7 @@ fn image_bw() {
 
 #[test]
 fn pngtestsuite() {
-    for entry in std::fs::read_dir("tests/pngtestsuite").unwrap().filter_map(|p|p.ok()) {
+    for entry in std::fs::read_dir("tests/pngtestsuite").unwrap().filter_map(|p| p.ok()) {
         let path = entry.path();
         let filenamestr = path.file_name().unwrap().to_string_lossy();
         // ignore signature test, since fallback for jpeg panics
@@ -230,10 +226,9 @@ fn pngtestsuite() {
     }
 }
 
-
 #[test]
 fn exif_test() {
-    for orient in &["top-left","top-right","bottom-left","bottom-right","left-bottom","left-top","right-bottom","right-top"] {
+    for orient in &["top-left", "top-right", "bottom-left", "bottom-right", "left-bottom", "left-top", "right-bottom", "right-top"] {
         let expected = load_image(format!("tests/img/exif-{}.png", orient), true).unwrap();
         let actual = load_image(format!("tests/img/exif-{}.jpg", orient), true).unwrap();
         let diff = compare(&expected, &actual);

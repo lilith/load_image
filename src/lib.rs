@@ -19,7 +19,7 @@ pub use crate::convert::FromOptions;
 pub use crate::format::*;
 pub use crate::image::*;
 pub use crate::loader::*;
-pub use lodepng::Error as Error;
+pub use lodepng::Error;
 use std::path::Path;
 
 /// Load image from file path
@@ -38,14 +38,14 @@ pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, Error> {
 pub mod export {
     /// Re-export of the [`rgb`](https://lib.rs/crates/rgb) crate
     pub mod rgb {
-        pub use ::rgb::*;
         pub use ::rgb::alt::*;
+        pub use ::rgb::*;
     }
 
     /// Re-export of the [`imgref`](https://lib.rs/crates/imgref) crate
     pub mod imgref {
-        pub use ::imgref::{ImgVec, ImgRef};
         use super::rgb;
+        pub use imgref::{ImgRef, ImgVec};
 
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub enum ImgRefKind<'data> {
@@ -71,5 +71,4 @@ pub mod export {
             GRAYA16(ImgVec<rgb::GRAYA16>),
         }
     }
-
 }

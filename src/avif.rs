@@ -1,10 +1,10 @@
-use aom_decode::avif;
-use aom_decode::Config;
 use crate::Format;
 use crate::FromOptions;
 use crate::Image;
 use crate::ImageMeta;
 use crate::Loader;
+use aom_decode::avif;
+use aom_decode::Config;
 use std::fs;
 
 impl Loader {

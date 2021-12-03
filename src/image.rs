@@ -11,24 +11,22 @@ use crate::export::imgref::{ImgRef, ImgRefKind, ImgVec, ImgVecKind};
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ImageMeta {
     pub format: Format,
-    #[cfg(feature="stat")]
+    #[cfg(feature = "stat")]
     pub created: u64,
-    #[cfg(feature="stat")]
+    #[cfg(feature = "stat")]
     pub modified: u64,
 }
 
 impl ImageMeta {
-    #[cfg(not(feature="stat"))]
+    #[cfg(not(feature = "stat"))]
     pub fn new(format: Format, _: Option<fs::Metadata>) -> Self {
-        ImageMeta {
-            format,
-        }
+        ImageMeta { format }
     }
 
-    #[cfg(feature="stat")]
+    #[cfg(feature = "stat")]
     pub fn new(format: Format, fs_meta: Option<fs::Metadata>) -> Self {
         fn time(t: Result<time::SystemTime, io::Error>) -> Option<u64> {
-            t.ok().and_then(|d|d.duration_since(time::UNIX_EPOCH).ok()).map(|d| d.as_secs())
+            t.ok().and_then(|d| d.duration_since(time::UNIX_EPOCH).ok()).map(|d| d.as_secs())
         }
         ImageMeta {
             format,
@@ -194,7 +192,7 @@ impl Image {
     }
 }
 
-#[cfg(feature="stat")]
+#[cfg(feature = "stat")]
 #[test]
 fn test_stat() {
     let file = fs::File::open("src/lib.rs").unwrap();
