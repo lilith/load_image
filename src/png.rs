@@ -6,7 +6,7 @@ use crate::image::*;
 use crate::loader::*;
 use imgref::*;
 use lcms2::*;
-use lodepng;
+
 use rgb::alt::Gray;
 use std::fs;
 

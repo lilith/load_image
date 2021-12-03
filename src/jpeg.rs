@@ -8,11 +8,11 @@ use rgb::*;
 use rgb::alt::*;
 use lcms2::*;
 use mozjpeg::{Decompress, Marker};
-use mozjpeg;
+
 use std::fs;
 use std::panic;
 
-const ADOBE98_CHROMATICITIES: &'static [f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
+const ADOBE98_CHROMATICITIES: &[f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
 
 impl Loader {
     fn get_jpeg_profile(&self, dinfo: &Decompress<'_>) -> Option<Profile> {
@@ -27,7 +27,9 @@ impl Loader {
             }
         }
 
-        let profile = if !profile_markers.is_empty() {
+        
+
+        if !profile_markers.is_empty() {
             profile_markers.sort_by_key(|data| data[12]);
             let mut icc = Vec::new();
             for data in profile_markers {
@@ -36,9 +38,7 @@ impl Loader {
             self.process_profile(Profile::new_icc(&icc[..]))
         } else {
             None
-        };
-
-        profile
+        }
     }
 
     fn get_exif_data(dinfo: &Decompress<'_>) -> (u16, bool) {
@@ -69,7 +69,7 @@ impl Loader {
                 }
             }
         }
-        return (orientation, is_adobe_1998);
+        (orientation, is_adobe_1998)
     }
 
     pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {

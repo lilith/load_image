@@ -13,7 +13,7 @@ pub trait CopyAlpha<Converted: Copy> where Self: Copy {
 macro_rules! copy_alpha_impl {
     ($in_type:ty => $out_type:ty, $fix:expr) => {
         impl CopyAlpha<$out_type> for $in_type {
-            #[allow(redundant_closure_call)]
+            #[allow(clippy::redundant_closure_call)]
             fn copy_alpha(src: &[Self], dst: &mut [$out_type]) {
                 for (s,d) in src.iter().zip(dst.iter_mut()) {
                     ($fix)(s,d);

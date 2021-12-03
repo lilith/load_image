@@ -10,8 +10,8 @@ fn tou16(v: u8) -> u16 {
 #[cfg(test)]
 fn convert(img: &Image) -> ImgVec<RGBA16> {
     match img.bitmap {
-        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(|c|tou16(c)).alpha(65535)).collect(), img.width, img.height),
-        ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(|c|tou16(c))).collect(), img.width, img.height),
+        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(tou16).alpha(65535)).collect(), img.width, img.height),
+        ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(tou16)).collect(), img.width, img.height),
         ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.alpha(65535)).collect(), img.width, img.height),
         ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.clone(), img.width, img.height),
         ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|{
@@ -221,7 +221,7 @@ fn pngtestsuite() {
             continue;
         }
         let res = load_image(&path, false);
-        if filenamestr.starts_with("x") {
+        if filenamestr.starts_with('x') {
             assert!(res.is_err());
         } else {
             let res = res.unwrap();
