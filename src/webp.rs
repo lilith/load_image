@@ -10,7 +10,7 @@ use std::fs;
 
 impl Loader {
     pub(crate) fn load_webp(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, WebPSimpleError> {
-        let opts = ImageMeta::new(Format::WebP, fs_meta);
+        let opts = ImageMeta::new(Format::WebP, vec![], fs_meta);
         if self.opaque {
             let (w, h, pixels) = libwebp::WebPDecodeRGB(data)?;
             Ok(Image::from_opts(ImgVec::new(pixels.as_rgb().to_vec(), w as _, h as _), opts))

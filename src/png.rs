@@ -7,6 +7,7 @@ use crate::loader::*;
 use imgref::*;
 use lcms2::*;
 
+use lodepng::ChunkPosition;
 use rgb::alt::Gray;
 use std::fs;
 
@@ -16,7 +17,7 @@ impl Loader {
         let mut state = lodepng::Decoder::new();
         state.color_convert(false);
         state.read_text_chunks(false);
-        state.remember_unknown_chunks(true);
+        state.remember_unknown_chunks(true); // always true, because ICC
 
         let (width, height) = state.inspect(data)?;
         if width*height > 10000*10000 {
@@ -33,7 +34,12 @@ impl Loader {
             None
         };
 
-        let meta = ImageMeta::new(Format::Png, fs_meta);
+        let chunks = [ChunkPosition::IHDR, ChunkPosition::PLTE, ChunkPosition::IDAT].iter()
+            .flat_map(|&pos| state.info_png().unknown_chunks(pos).map(|ch| {
+                (ChunkType::PNG(ch.name()), ch.data().to_vec())
+            })).collect();
+
+        let meta = ImageMeta::new(Format::Png, chunks, fs_meta);
 
         match res {
             lodepng::Image::RGBA(mut image) => {

@@ -17,6 +17,7 @@ pub enum Profiles {
 
 pub struct Loader {
     pub(crate) opaque: bool,
+    pub(crate) metadata: bool,
     pub(crate) profiles: Profiles,
 }
 
@@ -25,6 +26,7 @@ impl Loader {
     pub fn new() -> Self {
         Loader {
             opaque: false,
+            metadata: false,
             profiles: Profiles::NonsRGB,
         }
     }
@@ -34,6 +36,14 @@ impl Loader {
     #[inline(always)]
     pub fn opaque(&mut self, discard_alpha: bool) -> &mut Self {
         self.opaque = discard_alpha;
+        self
+    }
+
+    /// If true, will keep all image metadata.
+    /// If false, it will apply color profiles, EXIF rotation, and discard everything else.
+    #[inline(always)]
+    pub fn metadata(&mut self, keep_metadata: bool) -> &mut Self {
+        self.metadata = keep_metadata;
         self
     }
 

@@ -5,7 +5,7 @@ use crate::loader::*;
 use crate::pixel_format::*;
 use crate::profiles;
 use lcms2::*;
-use mozjpeg::{Decompress, Marker};
+use mozjpeg::{Decompress, Marker, ALL_MARKERS};
 use rgb::alt::*;
 use rgb::*;
 
@@ -71,11 +71,16 @@ impl Loader {
     }
 
     pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
-        let thread_res = panic::catch_unwind(|| {
-            let dinfo = Decompress::with_markers(&[
-                Marker::APP(1), /* Exif */
-                Marker::APP(2), /* Profile */
-            ]).from_mem(data).unwrap();
+        let thread_res = panic::catch_unwind(move || {
+            let which_markers = if self.metadata {
+                ALL_MARKERS
+            } else {
+                &[
+                    Marker::APP(1), /* Exif */
+                    Marker::APP(2), /* Profile */
+                ]
+            };
+            let dinfo = Decompress::with_markers(which_markers).from_mem(data).unwrap();
 
             let width = dinfo.width();
             let height = dinfo.height();
@@ -94,7 +99,11 @@ impl Loader {
             } else {
                 None
             };
-            let meta = ImageMeta::new(Format::Jpeg, fs_meta);
+
+            let chunks = dinfo.markers().map(|m| {
+                (ChunkType::JPEG(m.marker), m.data.to_vec())
+            }).collect();
+            let meta = ImageMeta::new(Format::Jpeg, chunks, fs_meta);
 
             let img = match dinfo.image()? {
                 mozjpeg::Format::RGB(mut dinfo) => {

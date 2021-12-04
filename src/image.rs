@@ -1,5 +1,5 @@
-use crate::convert::*;
-use crate::format::*;
+use crate::convert::FromOptions;
+use crate::format::Format;
 use std::fs;
 #[cfg(feature = "stat")]
 use std::io;
@@ -8,9 +8,23 @@ use std::time;
 
 use crate::export::imgref::{ImgRef, ImgRefKind, ImgVec, ImgVecKind};
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub type ImageMetaChunks = Vec<(ChunkType, Vec<u8>)>;
+
+/// Additional non-image metadata fetched from source files
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum ChunkType {
+    /// PNG chunks: name + data
+    PNG([u8;4]),
+    /// App marker
+    JPEG(mozjpeg::Marker),
+}
+
+#[non_exhaustive]
+#[derive(Debug, Clone)]
 pub struct ImageMeta {
     pub format: Format,
+    pub chunks: Vec<(ChunkType, Vec<u8>)>,
     #[cfg(feature = "stat")]
     pub created: u64,
     #[cfg(feature = "stat")]
@@ -19,24 +33,25 @@ pub struct ImageMeta {
 
 impl ImageMeta {
     #[cfg(not(feature = "stat"))]
-    pub fn new(format: Format, _: Option<fs::Metadata>) -> Self {
-        ImageMeta { format }
+    pub(crate) fn new(format: Format, chunks: ImageMetaChunks, _: Option<fs::Metadata>) -> Self {
+        ImageMeta { format, chunks }
     }
 
     #[cfg(feature = "stat")]
-    pub fn new(format: Format, fs_meta: Option<fs::Metadata>) -> Self {
+    pub(crate) fn new(format: Format, chunks: ImageMetaChunks, fs_meta: Option<fs::Metadata>) -> Self {
         fn time(t: Result<time::SystemTime, io::Error>) -> Option<u64> {
             t.ok().and_then(|d| d.duration_since(time::UNIX_EPOCH).ok()).map(|d| d.as_secs())
         }
         ImageMeta {
             format,
-            created: fs_meta.as_ref().and_then(|stat| time(stat.created())).unwrap_or(1500000001),
-            modified: fs_meta.and_then(|stat| time(stat.modified())).unwrap_or(1501296258),
+            chunks,
+            created: fs_meta.as_ref().and_then(|stat| time(stat.created())).unwrap_or(1638573452),
+            modified: fs_meta.and_then(|stat| time(stat.modified())).unwrap_or(1638573452),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Image {
     pub width: usize,
     pub height: usize,
@@ -196,7 +211,7 @@ impl Image {
 #[test]
 fn test_stat() {
     let file = fs::File::open("src/lib.rs").unwrap();
-    let m = ImageMeta::new(Format::Unknown, file.metadata().ok());
+    let m = ImageMeta::new(Format::Unknown, vec![], file.metadata().ok());
     assert!(m.created >= 1499358961);
     assert!(m.modified >= 1499358961);
     assert!(m.modified >= m.created);
