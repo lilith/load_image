@@ -41,7 +41,7 @@ copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = s.1 as u16
 copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
 pub trait ToSRGBImage {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_meta: ImageMeta) -> Image;
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, discard_alpha: bool, orig_meta: ImageMeta) -> Image;
 }
 
 pub trait Convertible<Converted: Copy> {
@@ -71,9 +71,9 @@ impl<T> ToSRGBImage for [T]
           Image: FromOptions<ImgVec<T::ConvertedOpaque>>,
           T: CopyAlpha<<T as LcmsPixelConversion>::Converted>
 {
-    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, opaque: bool, orig_meta: ImageMeta) -> Image {
+    fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, discard_alpha: bool, orig_meta: ImageMeta) -> Image {
         if let Some(profile) = profile {
-            if opaque {
+            if discard_alpha {
                 let converted: Option<Vec<T::ConvertedOpaque>> = self.apply_profile(profile);
                 if let Some(pixels) = converted {
                     return Image::from_opts(ImgVec::new(pixels, width, height), orig_meta);

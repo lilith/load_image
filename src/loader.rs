@@ -16,7 +16,7 @@ pub enum Profiles {
 }
 
 pub struct Loader {
-    pub(crate) opaque: bool,
+    pub(crate) discard_alpha: bool,
     pub(crate) metadata: bool,
     pub(crate) profiles: Profiles,
 }
@@ -25,7 +25,7 @@ impl Loader {
     #[inline(always)]
     pub fn new() -> Self {
         Loader {
-            opaque: false,
+            discard_alpha: false,
             metadata: false,
             profiles: Profiles::NonsRGB,
         }
@@ -35,7 +35,7 @@ impl Loader {
     /// Default is false, which supports transparency.
     #[inline(always)]
     pub fn opaque(&mut self, discard_alpha: bool) -> &mut Self {
-        self.opaque = discard_alpha;
+        self.discard_alpha = discard_alpha;
         self
     }
 

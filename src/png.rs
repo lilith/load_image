@@ -13,7 +13,7 @@ use std::fs;
 
 impl Loader {
     pub(crate) fn load_png(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
-        let opaque = self.opaque;
+        let discard_alpha = self.discard_alpha;
         let mut state = lodepng::Decoder::new();
         state.color_convert(false);
         state.read_text_chunks(false);
@@ -43,24 +43,24 @@ impl Loader {
 
         match res {
             lodepng::Image::RGBA(mut image) => {
-                let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta))
+                let discard_alpha = discard_alpha || is_opaque(image.buffer.as_ref());
+                Ok(image.buffer.to_image(profile, image.width, image.height, discard_alpha, meta))
             },
-            lodepng::Image::RGB(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta)),
-            lodepng::Image::RGB16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::RGB(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, discard_alpha, meta)),
+            lodepng::Image::RGB16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, discard_alpha, meta)),
             lodepng::Image::RGBA16(mut image) => {
-                let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta))
+                let discard_alpha = discard_alpha || is_opaque(image.buffer.as_ref());
+                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, discard_alpha, meta))
             },
-            lodepng::Image::Grey(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta)),
-            lodepng::Image::Grey16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta)),
+            lodepng::Image::Grey(mut image) => Ok(image.buffer.to_image(profile, image.width, image.height, discard_alpha, meta)),
+            lodepng::Image::Grey16(mut image) => Ok(image.buffer.to_native().to_image(profile, image.width, image.height, discard_alpha, meta)),
             lodepng::Image::GreyAlpha(mut image) => {
-                let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.to_image(profile, image.width, image.height, opaque, meta))
+                let discard_alpha = discard_alpha || is_opaque(image.buffer.as_ref());
+                Ok(image.buffer.to_image(profile, image.width, image.height, discard_alpha, meta))
             },
             lodepng::Image::GreyAlpha16(mut image) => {
-                let opaque = opaque || is_opaque(image.buffer.as_ref());
-                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, opaque, meta))
+                let discard_alpha = discard_alpha || is_opaque(image.buffer.as_ref());
+                Ok(image.buffer.to_native().to_image(profile, image.width, image.height, discard_alpha, meta))
             },
             lodepng::Image::RawData(rawdata) => {
                 let png = state.info_raw_mut();
@@ -69,8 +69,8 @@ impl Loader {
                     lodepng::ColorType::PALETTE => {
                         let pal = png.palette_mut();
                         let ncolors = pal.len();
-                        let opaque = opaque || is_opaque(pal);
-                        pal.to_image(profile, 1, ncolors, opaque, meta.clone())
+                        let discard_alpha = discard_alpha || is_opaque(pal);
+                        pal.to_image(profile, 1, ncolors, discard_alpha, meta.clone())
                     },
                     lodepng::ColorType::GREY => {
                         let ncolors = 1 << depth;
