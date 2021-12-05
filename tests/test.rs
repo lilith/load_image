@@ -51,6 +51,7 @@ fn compare(left: &Image, right: &Image) -> f64 {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_gray() {
     let g0 = load_image("tests/img/gray1-rgba16.png", false).unwrap();
     let g1 = load_image("tests/img/gray1-rgba.png", false).unwrap();
@@ -89,6 +90,7 @@ fn image_gray() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_implied1998_profile() {
     let adobe98 = load_image("tests/img/adobe1998exif.jpg", true).unwrap();
     let expected = load_image("tests/img/adobe1998assrgb.jpg", true).unwrap();
@@ -98,6 +100,7 @@ fn image_implied1998_profile() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_gray_profile() {
     let gp1 = load_image("tests/img/gray-profile.png", false).unwrap();
     let gp1o = load_image("tests/img/gray-profile.png", true).unwrap();
@@ -122,6 +125,7 @@ fn image_gray_profile() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_load1() {
     let prof_jpg = load_image("tests/img/profile.jpg", false).unwrap();
     let prof_png = load_image("tests/img/profile.png", false).unwrap();
@@ -138,6 +142,7 @@ fn image_load1() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_load_no_profiles() {
     let prof_jpg = Loader::new().profiles(Profiles::None).load_path("tests/img/profile.jpg").unwrap();
 
@@ -162,6 +167,7 @@ fn image_load_all_profiles() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_load_some_profiles() {
     let prof_png = Loader::new().profiles(Profiles::NonsRGB).load_path("tests/img/profile.png").unwrap();
     assert!(prof_png.is_opaque());
@@ -188,6 +194,7 @@ fn image_4bit() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn image_cmyk() {
     let im1 = load_image("tests/img/cmyk.png", true).unwrap();
     let im2 = load_image("tests/img/cmyk.jpg", true).unwrap();
@@ -227,6 +234,7 @@ fn pngtestsuite() {
 }
 
 #[test]
+#[cfg(feature = "jpeg")]
 fn exif_test() {
     for orient in &["top-left", "top-right", "bottom-left", "bottom-right", "left-bottom", "left-top", "right-bottom", "right-top"] {
         let expected = load_image(format!("tests/img/exif-{}.png", orient), true).unwrap();

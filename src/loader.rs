@@ -96,11 +96,11 @@ impl Loader {
             return self.load_webp(data, meta).map_err(|_| crate::Error::new(28));
         }
 
+        #[cfg(feature = "jpeg")]
         if data.get(0) == Some(&0xFF) {
-            self.load_jpeg(data, meta)
-        } else {
-            Err(crate::Error::new(28))
+            return self.load_jpeg(data, meta);
         }
+        Err(crate::Error::new(28))
     }
 
     pub(crate) fn process_profile(&self, profile: LCMSResult<Profile>) -> Option<Profile> {

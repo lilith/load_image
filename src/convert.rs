@@ -48,6 +48,7 @@ pub trait Convertible<Converted: Copy> {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>>;
 }
 
+#[cfg(feature = "jpeg")]
 impl ToSRGBImage for Vec<CMYK> {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool, orig_meta: ImageMeta) -> Image {
         let converted: Option<Vec<<CMYK as LcmsPixelConversion>::Converted>>;

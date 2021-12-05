@@ -16,6 +16,7 @@ pub type ImageMetaChunks = Vec<(ChunkType, Vec<u8>)>;
 pub enum ChunkType {
     /// PNG chunks: name + data
     PNG([u8;4]),
+    #[cfg(feature = "jpeg")]
     /// App marker
     JPEG(mozjpeg::Marker),
 }

@@ -3,10 +3,12 @@ mod convert;
 mod endian;
 mod format;
 mod image;
-mod jpeg;
 mod loader;
 mod pixel_format;
 mod png;
+
+#[cfg(feature = "jpeg")]
+mod jpeg;
 mod profiles;
 
 #[cfg(feature = "avif")]
