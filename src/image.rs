@@ -60,6 +60,7 @@ pub struct Image {
     pub bitmap: ImageData,
 }
 
+/// Pixels of the image
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageData {
     RGB8(Vec<rgb::RGB8>),

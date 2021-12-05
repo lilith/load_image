@@ -52,12 +52,13 @@ fn compare(left: &Image, right: &Image) -> f64 {
 
 #[test]
 #[cfg(feature = "jpeg")]
+#[allow(deprecated)]
 fn image_gray() {
-    let g0 = load_image("tests/img/gray1-rgba16.png", false).unwrap();
-    let g1 = load_image("tests/img/gray1-rgba.png", false).unwrap();
-    let g2 = load_image("tests/img/gray1-pal.png", false).unwrap();
-    let g3 = load_image("tests/img/gray1-gray.png", false).unwrap();
-    let g4 = load_image("tests/img/gray1.jpg", false).unwrap();
+    let g0 = load_path("tests/img/gray1-rgba16.png").unwrap();
+    let g1 = load_path("tests/img/gray1-rgba.png").unwrap();
+    let g2 = load_path("tests/img/gray1-pal.png").unwrap();
+    let g3 = load_path("tests/img/gray1-gray.png").unwrap();
+    let g4 = load_path("tests/img/gray1.jpg").unwrap();
     let g5 = load_image("tests/img/gray1-rgba.png", true).unwrap();
 
     assert!(g0.is_opaque());
@@ -91,6 +92,7 @@ fn image_gray() {
 
 #[test]
 #[cfg(feature = "jpeg")]
+#[allow(deprecated)]
 fn image_implied1998_profile() {
     let adobe98 = load_image("tests/img/adobe1998exif.jpg", true).unwrap();
     let expected = load_image("tests/img/adobe1998assrgb.jpg", true).unwrap();
@@ -101,11 +103,12 @@ fn image_implied1998_profile() {
 
 #[test]
 #[cfg(feature = "jpeg")]
+#[allow(deprecated)]
 fn image_gray_profile() {
-    let gp1 = load_image("tests/img/gray-profile.png", false).unwrap();
+    let gp1 = load_path("tests/img/gray-profile.png").unwrap();
     let gp1o = load_image("tests/img/gray-profile.png", true).unwrap();
-    let gp2 = load_image("tests/img/gray-profile2.png", false).unwrap();
-    let gp3 = load_image("tests/img/gray-profile.jpg", false).unwrap();
+    let gp2 = load_path("tests/img/gray-profile2.png").unwrap();
+    let gp3 = load_path("tests/img/gray-profile.jpg").unwrap();
 
     let diff = compare(&gp1, &gp2);
     assert!(diff < 0.0003, "{}", diff);
@@ -127,16 +130,16 @@ fn image_gray_profile() {
 #[test]
 #[cfg(feature = "jpeg")]
 fn image_load1() {
-    let prof_jpg = load_image("tests/img/profile.jpg", false).unwrap();
-    let prof_png = load_image("tests/img/profile.png", false).unwrap();
+    let prof_jpg = load_path("tests/img/profile.jpg").unwrap();
+    let prof_png = load_path("tests/img/profile.png").unwrap();
     let diff = compare(&prof_jpg, &prof_png);
     assert!(diff <= 0.002);
 
-    let strip_jpg = load_image("tests/img/profile-stripped.jpg", false).unwrap();
+    let strip_jpg = load_path("tests/img/profile-stripped.jpg").unwrap();
     let diff = compare(&strip_jpg, &prof_jpg);
     assert!(diff > 0.002, "{}", diff);
 
-    let strip_png = load_image("tests/img/profile-stripped.png", false).unwrap();
+    let strip_png = load_path("tests/img/profile-stripped.png").unwrap();
     let diff = compare(&strip_jpg, &strip_png);
     assert!(diff > 0.002, "{}", diff);
 }
@@ -146,7 +149,7 @@ fn image_load1() {
 fn image_load_no_profiles() {
     let prof_jpg = Loader::new().profiles(Profiles::None).load_path("tests/img/profile.jpg").unwrap();
 
-    let strip_jpg = load_image("tests/img/profile-stripped.jpg", false).unwrap();
+    let strip_jpg = load_path("tests/img/profile-stripped.jpg").unwrap();
     let diff = compare(&strip_jpg, &prof_jpg);
     assert!(diff < 0.002, "{} jpg", diff);
 
@@ -185,8 +188,8 @@ fn image_load_some_profiles() {
 
 #[test]
 fn image_4bit() {
-    let im1 = load_image("tests/img/tile1.png", false).unwrap();
-    let im2 = load_image("tests/img/tile2.png", false).unwrap();
+    let im1 = load_path("tests/img/tile1.png").unwrap();
+    let im2 = load_path("tests/img/tile2.png").unwrap();
     assert!(!im1.is_opaque());
     assert!(!im2.is_opaque());
     let diff = compare(&im1, &im2);
@@ -195,6 +198,7 @@ fn image_4bit() {
 
 #[test]
 #[cfg(feature = "jpeg")]
+#[allow(deprecated)]
 fn image_cmyk() {
     let im1 = load_image("tests/img/cmyk.png", true).unwrap();
     let im2 = load_image("tests/img/cmyk.jpg", true).unwrap();
@@ -208,7 +212,7 @@ fn image_cmyk() {
 
 #[test]
 fn image_bw() {
-    let res = load_image("tests/img/1bit.png", false).unwrap();
+    let res = load_path("tests/img/1bit.png").unwrap();
     assert_eq!(Format::Png, res.meta.format);
     assert!(res.is_opaque());
 }
@@ -223,7 +227,7 @@ fn pngtestsuite() {
         if !filenamestr.ends_with(".png") || filenamestr.starts_with("xs") || filenamestr.starts_with("xcs") {
             continue;
         }
-        let res = load_image(&path, false);
+        let res = load_path(&path);
         if filenamestr.starts_with('x') {
             assert!(res.is_err());
         } else {
@@ -235,6 +239,7 @@ fn pngtestsuite() {
 
 #[test]
 #[cfg(feature = "jpeg")]
+#[allow(deprecated)]
 fn exif_test() {
     for orient in &["top-left", "top-right", "bottom-left", "bottom-right", "left-bottom", "left-top", "right-bottom", "right-top"] {
         let expected = load_image(format!("tests/img/exif-{}.png", orient), true).unwrap();
@@ -251,7 +256,7 @@ fn exif_test() {
 
 #[test]
 fn nonsense() {
-    assert!(load_image_data(&[0u8], true).is_err());
-    assert!(load_image_data(&vec![0xFEu8; 1000], false).is_err());
-    assert!(load_image_data(&vec![0xFFu8; 1000], false).is_err());
+    assert!(load_data(&[0u8]).is_err());
+    assert!(load_data(&vec![0xFEu8; 1000]).is_err());
+    assert!(load_data(&vec![0xFFu8; 1000]).is_err());
 }

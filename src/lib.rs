@@ -25,13 +25,23 @@ pub use lodepng::Error;
 use std::path::Path;
 
 /// Load image from file path
-#[inline]
+pub fn load_path(path: impl AsRef<Path>) -> Result<Image, Error> {
+    Loader::new().load_path(path)
+}
+
+/// Load image from file data in memory
+pub fn load_data(data: &[u8]) -> Result<Image, Error> {
+    Loader::new().load_data(data)
+}
+
+#[doc(hidden)]
+#[deprecated(note = "use load_path")]
 pub fn load_image(path: impl AsRef<Path>, opaque: bool) -> Result<Image, Error> {
     Loader::new().opaque(opaque).load_path(path)
 }
 
-/// Load image from file data in memory
-#[inline]
+#[doc(hidden)]
+#[deprecated(note = "use load_data")]
 pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, Error> {
     Loader::new().opaque(opaque).load_data(data)
 }
