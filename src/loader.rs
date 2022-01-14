@@ -59,7 +59,7 @@ impl Loader {
         let path = path.as_ref();
         let mut data = Vec::new();
         let (data, stat) = if path.as_os_str() == "-" {
-            fallible_collections::FallibleVec::try_reserve(&mut data, 1<<16)?; // arbitrary, better than 0
+            fallible_collections::FallibleVec::try_reserve(&mut data, 1 << 16)?; // arbitrary, better than 0
             io::stdin().lock().read_to_end(&mut data)?;
             (data, None)
         } else {

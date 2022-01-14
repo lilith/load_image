@@ -15,8 +15,8 @@ macro_rules! copy_alpha_impl {
         impl CopyAlpha<$out_type> for $in_type {
             #[allow(clippy::redundant_closure_call)]
             fn copy_alpha(src: &[Self], dst: &mut [$out_type]) {
-                for (s,d) in src.iter().zip(dst.iter_mut()) {
-                    ($fix)(s,d);
+                for (s, d) in src.iter().zip(dst.iter_mut()) {
+                    ($fix)(s, d);
                 }
             }
         }

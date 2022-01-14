@@ -20,7 +20,7 @@ impl Loader {
         state.remember_unknown_chunks(true); // always true, because ICC
 
         let (width, height) = state.inspect(data)?;
-        if width*height > 10000*10000 {
+        if width * height > 10000 * 10000 {
             return Err(crate::Error::new(92));
         }
 

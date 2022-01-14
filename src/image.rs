@@ -15,14 +15,14 @@ pub type ImageMetaChunks = Vec<(ChunkType, Vec<u8>)>;
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChunkType {
     /// PNG chunks: name + data
-    PNG([u8;4]),
+    PNG([u8; 4]),
     #[cfg(feature = "jpeg")]
     /// App marker
     JPEG(mozjpeg::Marker),
 }
 
 #[non_exhaustive]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ImageMeta {
     pub format: Format,
     pub chunks: Vec<(ChunkType, Vec<u8>)>,
