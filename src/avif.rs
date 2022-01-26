@@ -13,7 +13,7 @@ impl Loader {
             threads: num_cpus::get(),
         })?;
 
-        let meta = ImageMeta::new(Format::Avif, fs_meta);
+        let meta = ImageMeta::new(Format::Avif, vec![], fs_meta);
         Ok(match d.convert()? {
             avif::Image::RGB8(img) => Image::from_opts(img, meta),
             avif::Image::RGBA8(img) => Image::from_opts(img, meta),
@@ -27,7 +27,7 @@ impl Loader {
 
 #[test]
 fn poke_avif_test() {
-    let a = crate::load_image("tests/img/test.avif", false).unwrap();
+    let a = crate::load_path("tests/img/test.avif").unwrap();
     assert_eq!(18, a.width);
     assert_eq!(6, a.height);
 }

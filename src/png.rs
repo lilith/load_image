@@ -35,7 +35,9 @@ impl Loader {
         };
 
         let chunks = [ChunkPosition::IHDR, ChunkPosition::PLTE, ChunkPosition::IDAT].iter()
-            .flat_map(|&pos| state.info_png().unknown_chunks(pos).map(|ch| {
+            .flat_map(|&pos| state.info_png().try_unknown_chunks(pos)
+            .filter_map(|ch| ch.ok())
+            .map(|ch| {
                 (ChunkType::PNG(ch.name()), ch.data().to_vec())
             })).collect();
 
