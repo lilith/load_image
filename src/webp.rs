@@ -11,7 +11,7 @@ use std::fs;
 impl Loader {
     pub(crate) fn load_webp(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, WebPSimpleError> {
         let opts = ImageMeta::new(Format::WebP, vec![], fs_meta);
-        if self.opaque {
+        if self.discard_alpha {
             let (w, h, pixels) = libwebp::WebPDecodeRGB(data)?;
             Ok(Image::from_opts(ImgVec::new(pixels.as_rgb().to_vec(), w as _, h as _), opts))
         } else {
@@ -23,7 +23,7 @@ impl Loader {
 
 #[test]
 fn poke_webp_test() {
-    let a = crate::load_image("tests/img/test.webp", false).unwrap();
+    let a = crate::load_path("tests/img/test.webp").unwrap();
     assert_eq!(20, a.width);
     assert_eq!(20, a.height);
 }
