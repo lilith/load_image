@@ -1,3 +1,4 @@
+use std::panic::catch_unwind;
 use crate::convert::*;
 use crate::format::*;
 use crate::image::*;
@@ -48,7 +49,13 @@ impl Loader {
             if m.marker != Marker::APP(1) || data.len() < 12 || &data[0..6] != b"Exif\0\0" {
                 continue;
             }
-            if let Ok(parsed) = rexif::parse_buffer(&data[6..]) {
+
+            // panic from drop is not an issue
+            let exif = catch_unwind(|| {
+                rexif::parse_buffer(&data[6..])
+            });
+
+            if let Ok(Ok(parsed)) = exif {
                 for f in parsed.entries {
                     match (f.tag, f.value) {
                         (rexif::ExifTag::PrimaryChromaticities, rexif::TagValue::URational(n)) => {
