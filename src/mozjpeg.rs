@@ -1,8 +1,8 @@
-use std::panic::catch_unwind;
 use crate::convert::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
+use crate::exif::*;
 use crate::pixel_format::*;
 use crate::profiles;
 use lcms2::*;
@@ -12,8 +12,6 @@ use rgb::*;
 
 use std::fs;
 use std::panic;
-
-const ADOBE98_CHROMATICITIES: &[f64] = &[0.64, 0.33, 0.21, 0.71, 0.15, 0.06];
 
 impl Loader {
     fn get_jpeg_profile(&self, dinfo: &Decompress<'_>) -> Option<Profile> {
@@ -41,40 +39,14 @@ impl Loader {
     }
 
     fn get_exif_data(dinfo: &Decompress<'_>) -> (u16, bool) {
-        let mut orientation = 1;
-        let mut is_adobe_1998 = false;
-
         for m in dinfo.markers() {
             let data = m.data;
             if m.marker != Marker::APP(1) || data.len() < 12 || &data[0..6] != b"Exif\0\0" {
                 continue;
             }
-
-            // panic from drop is not an issue
-            let exif = catch_unwind(|| {
-                rexif::parse_buffer(&data[6..])
-            });
-
-            if let Ok(Ok(parsed)) = exif {
-                for f in parsed.entries {
-                    match (f.tag, f.value) {
-                        (rexif::ExifTag::PrimaryChromaticities, rexif::TagValue::URational(n)) => {
-                            if n.len() == ADOBE98_CHROMATICITIES.len() &&
-                                n.iter().zip(ADOBE98_CHROMATICITIES).all(|(r,a)| (r.value()-a).abs() < 0.001) {
-                                is_adobe_1998 = true;
-                            }
-                        },
-                        (rexif::ExifTag::Orientation, rexif::TagValue::U16(n)) => {
-                            if let Some(&n) = n.get(0) {
-                                orientation = n;
-                            }
-                        },
-                        _ => {},
-                    };
-                }
-            }
+            return parse_exif(&data[6..]);
         }
-        (orientation, is_adobe_1998)
+        (1, false)
     }
 
     pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
