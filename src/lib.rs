@@ -7,8 +7,8 @@ mod loader;
 mod pixel_format;
 mod png;
 
-#[cfg(feature = "jpeg")]
-mod jpeg;
+#[cfg(feature = "mozjpeg")]
+mod mozjpeg;
 mod profiles;
 
 #[cfg(feature = "avif")]

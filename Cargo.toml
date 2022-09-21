@@ -4,7 +4,7 @@ description = "Load PNG or JPEG with color profile support"
 keywords = ["load_image"]
 license = "GPL-3.0+"
 name = "load_image"
-version = "2.16.4"
+version = "2.17.0"
 edition = "2021"
 include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "README.md"]
 readme = "README.md"
@@ -24,14 +24,15 @@ libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
 fallible_collections = "0.4.5"
 
 [features]
-default = ["jpeg"]
 jpeg = ["mozjpeg", "rexif"]
+default = ["mozjpeg"]
+mozjpeg = ["dep:mozjpeg", "dep:rexif"]
 stat = []
 
-avif = ["aom-decode", "num_cpus"]
+avif = ["dep:aom-decode", "dep:num_cpus"]
 
-webp = ["libwebp"]
-webp-static = ["webp", "libwebp/static"]
+webp = ["dep:libwebp"]
+webp-static = ["webp", "libwebp?/static"]
 
 lcms2-static = ["lcms2/static"]
 # old name; do not use

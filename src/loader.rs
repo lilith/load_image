@@ -96,7 +96,7 @@ impl Loader {
             return self.load_webp(data, meta).map_err(|_| crate::Error::new(28));
         }
 
-        #[cfg(feature = "jpeg")]
+        #[cfg(feature = "mozjpeg")]
         if data.get(0) == Some(&0xFF) {
             return self.load_jpeg(data, meta);
         }
