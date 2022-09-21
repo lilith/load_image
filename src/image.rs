@@ -75,6 +75,7 @@ pub enum ImageData {
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Rotate {
+    None,
     FlipX,
     D90,
     D90FlipX,
@@ -82,6 +83,21 @@ pub enum Rotate {
     D180FlipX,
     D270,
     D270FlipX,
+}
+
+impl Rotate {
+    pub fn from_exif_orientation(orientation: u16) -> Self {
+        match orientation {
+            2 => Rotate::FlipX,
+            3 => Rotate::D180,
+            4 => Rotate::D180FlipX,
+            5 => Rotate::D270FlipX,
+            6 => Rotate::D270,
+            7 => Rotate::D90FlipX,
+            8 => Rotate::D90,
+            _ => Rotate::None,
+        }
+    }
 }
 
 impl Image {
@@ -130,77 +146,76 @@ impl Image {
         }
     }
 
-    pub fn rotated(&self, r: Rotate) -> Image {
-        let meta = self.meta.clone();
+    pub fn rotated(self, r: Rotate) -> Image {
+        let meta = self.meta;
         match self.bitmap {
-            ImageData::RGB8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::RGBA8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::RGB16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::RGBA16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::GRAY8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::GRAY16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::GRAYA8(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
-            ImageData::GRAYA16(ref bitmap) => Self::from_opts(Self::rotated_bitmap(ImgRef::new(bitmap, self.width, self.height), r), meta),
+            ImageData::RGB8(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::RGBA8(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::RGB16(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::RGBA16(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::GRAY8(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::GRAY16(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::GRAYA8(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
+            ImageData::GRAYA16(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),
         }
     }
 
-    fn rotated_bitmap<T: Copy>(bitmap: ImgRef<T>, rotation: Rotate) -> ImgVec<T> {
-        let (width, height, stride) = (bitmap.width(), bitmap.height(), bitmap.stride());
-        let s = bitmap.buf();
-        let mut d = Vec::with_capacity(bitmap.width() * bitmap.height());
+    fn rotated_bitmap<T: Copy>(mut bitmap: ImgVec<T>, rotation: Rotate) -> ImgVec<T> {
+        let width = bitmap.width();
+        let height = bitmap.height();
+        let area = width.checked_mul(height).unwrap();
         match rotation {
+            Rotate::None => bitmap,
             Rotate::FlipX => {
-                for y in 0..height {
-                    for x in (0..width).rev() {
-                        d.push(s[x + y * stride]);
-                    }
-                }
-                ImgVec::new(d, width, height)
+                bitmap.rows_mut().for_each(|row| row.reverse());
+                bitmap
             },
             Rotate::D90 => {
+                let mut d = Vec::with_capacity(area);
                 for x in (0..width).rev() {
                     for y in 0..height {
-                        d.push(s[x + y * stride]);
+                        d.push(bitmap[(x, y)]);
                     }
                 }
                 ImgVec::new(d, height, width)
             },
             Rotate::D90FlipX => {
+                let mut d = Vec::with_capacity(area);
                 for x in (0..width).rev() {
                     for y in (0..height).rev() {
-                        d.push(s[x + y * stride]);
+                        d.push(bitmap[(x, y)]);
                     }
                 }
                 ImgVec::new(d, height, width)
             },
             Rotate::D180 => {
-                for y in (0..height).rev() {
-                    for x in (0..width).rev() {
-                        d.push(s[x + y * stride]);
-                    }
-                }
+                let mut d = Vec::with_capacity(area);
+                bitmap.rows().rev().for_each(|row| {
+                    d.extend(row.iter().copied().rev());
+                });
                 ImgVec::new(d, width, height)
             },
             Rotate::D180FlipX => {
-                for y in (0..height).rev() {
-                    for x in 0..width {
-                        d.push(s[x + y * stride]);
-                    }
-                }
+                let mut d = Vec::with_capacity(area);
+                bitmap.rows().rev().for_each(|row| {
+                    d.extend_from_slice(row);
+                });
                 ImgVec::new(d, width, height)
             },
             Rotate::D270 => {
+                let mut d = Vec::with_capacity(area);
                 for x in 0..width {
                     for y in (0..height).rev() {
-                        d.push(s[x + y * stride]);
+                        d.push(bitmap[(x, y)]);
                     }
                 }
                 ImgVec::new(d, height, width)
             },
             Rotate::D270FlipX => {
+                let mut d = Vec::with_capacity(area);
                 for x in 0..width {
                     for y in 0..height {
-                        d.push(s[x + y * stride]);
+                        d.push(bitmap[(x, y)]);
                     }
                 }
                 ImgVec::new(d, height, width)
