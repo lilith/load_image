@@ -59,7 +59,7 @@ impl Loader {
         let path = path.as_ref();
         let mut data = Vec::new();
         let (data, stat) = if path.as_os_str() == "-" {
-            fallible_collections::FallibleVec::try_reserve(&mut data, 1 << 16)?; // arbitrary, better than 0
+            data.try_reserve(1 << 16)?; // arbitrary, better than 0
             io::stdin().lock().read_to_end(&mut data)?;
             (data, None)
         } else {
@@ -68,7 +68,7 @@ impl Loader {
             #[cfg(unix)] {
                 use std::os::unix::prelude::MetadataExt; // Ugh, this is so bad
                 // +1 due to read_to_end's EOF check
-                fallible_collections::FallibleVec::try_reserve(&mut data, stat.size() as usize + 1)?;
+                data.try_reserve(stat.size() as usize + 1)?;
             }
             file.read_to_end(&mut data)?;
             (data, Some(stat))
@@ -104,7 +104,7 @@ impl Loader {
         if data.get(0) == Some(&0xFF) {
             return self.load_jpeg(data, meta);
         }
-        Err(crate::Error::new(28))
+        Err(crate::Error::UnsupportedFileFormat)
     }
 
     pub(crate) fn process_profile(&self, profile: LCMSResult<Profile>) -> Option<Profile> {

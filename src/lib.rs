@@ -1,11 +1,14 @@
 mod alpha;
 mod convert;
 mod endian;
+mod error;
 mod format;
 mod image;
 mod loader;
 mod pixel_format;
 mod png;
+
+pub use crate::error::*;
 
 #[cfg(feature = "mozjpeg")]
 mod mozjpeg;
@@ -25,7 +28,6 @@ pub use crate::convert::FromOptions;
 pub use crate::format::*;
 pub use crate::image::*;
 pub use crate::loader::*;
-pub use lodepng::Error;
 use std::path::Path;
 
 /// Load image from file path

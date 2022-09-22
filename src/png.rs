@@ -21,7 +21,7 @@ impl Loader {
 
         let (width, height) = state.inspect(data)?;
         if width * height > 10000 * 10000 {
-            return Err(crate::Error::new(92));
+            return Err(lodepng::Error::new(92).into());
         }
 
         let res = state.decode(data)?;
@@ -80,7 +80,7 @@ impl Loader {
                         let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c * 255 / max) as u8)).collect();
                         graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
-                    _ => return Err(crate::Error::new(59))
+                    _ => return Err(lodepng::Error::new(59).into())
                 };
                 match pal.bitmap {
                     ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
@@ -91,7 +91,7 @@ impl Loader {
                     ImageData::GRAYA8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
                     ImageData::GRAY16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
                     ImageData::GRAYA16(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
-                }.ok_or(crate::Error::new(59))
+                }.ok_or(lodepng::Error::new(59).into())
             },
         }
     }

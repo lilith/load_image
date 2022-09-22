@@ -15,8 +15,8 @@ use std::fs;
 impl Loader {
     pub(crate) fn load_jpeg(&self, mut data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         let mut dec = jpeg_decoder::Decoder::new(&mut data);
-        let mut pixels = dec.decode().map_err(|_| crate::Error::new(78))?;
-        let info = dec.info().ok_or(crate::Error::new(78))?;
+        let mut pixels = dec.decode()?;
+        let info = dec.info().ok_or(crate::Error::UnsupportedJpeg)?;
         let exif = dec.exif_data();
 
         let (orientation, is_adobe_1998) = exif.map(parse_exif).unwrap_or((1, false));

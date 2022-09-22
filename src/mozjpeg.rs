@@ -65,7 +65,7 @@ impl Loader {
             let height = dinfo.height();
 
             if width*height > 10000*10000 {
-                return Err(crate::Error::new(92));
+                return Err(crate::Error::ImageTooLarge);
             }
 
             let (orientation, is_adobe_1998) = Self::get_exif_data(&dinfo);
@@ -101,10 +101,7 @@ impl Loader {
             Ok((img, orientation))
         });
 
-        if thread_res.is_err() {
-            return Err(crate::Error::new(28));
-        }
-        let (img, orientation) = thread_res.unwrap()?;
+        let (img, orientation) = thread_res.map_err(|_| crate::Error::UnsupportedJpeg)??;
 
         Ok(img.rotated(Rotate::from_exif_orientation(orientation)))
     }
