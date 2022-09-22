@@ -9,6 +9,8 @@ mod png;
 
 #[cfg(feature = "mozjpeg")]
 mod mozjpeg;
+#[cfg(all(not(feature = "mozjpeg"), feature = "jpeg"))]
+mod jpeg;
 #[cfg(any(feature = "mozjpeg", feature = "jpeg"))]
 mod exif;
 mod profiles;

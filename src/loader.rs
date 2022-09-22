@@ -98,6 +98,10 @@ impl Loader {
 
         #[cfg(feature = "mozjpeg")]
         if data.get(0) == Some(&0xFF) {
+            return self.load_mozjpeg(data, meta);
+        }
+        #[cfg(all(not(feature = "mozjpeg"), feature = "jpeg"))]
+        if data.get(0) == Some(&0xFF) {
             return self.load_jpeg(data, meta);
         }
         Err(crate::Error::new(28))

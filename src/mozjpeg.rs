@@ -49,7 +49,7 @@ impl Loader {
         (1, false)
     }
 
-    pub(crate) fn load_jpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
+    pub(crate) fn load_mozjpeg(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         let thread_res = panic::catch_unwind(move || {
             let which_markers = if self.metadata {
                 ALL_MARKERS
@@ -90,8 +90,8 @@ impl Loader {
                     rgb.to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::CMYK(mut dinfo) => {
-                    let mut cmyk: Vec<CMYK> = dinfo.read_scanlines().unwrap();
-                    cmyk.to_image(profile, width, height, true, meta)
+                    let cmyk: Vec<CMYK> = dinfo.read_scanlines().unwrap();
+                    cmyk.as_slice().to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::Gray(mut dinfo) => {
                     let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();

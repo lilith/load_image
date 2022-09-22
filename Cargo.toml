@@ -22,11 +22,13 @@ aom-decode = { version = "0.2.3", optional = true }
 num_cpus = { version = "1.13.1", optional = true }
 libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
 fallible_collections = "0.4.5"
+jpeg-decoder = { version = "0.2.6", optional = true }
+bytemuck = "1.12.1"
 
 [features]
-jpeg = ["mozjpeg", "rexif"]
-default = ["mozjpeg"]
+default = ["jpeg"]
 mozjpeg = ["dep:mozjpeg", "dep:rexif"]
+jpeg = ["dep:jpeg-decoder", "dep:rexif"]
 stat = []
 
 avif = ["dep:aom-decode", "dep:num_cpus"]
