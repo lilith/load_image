@@ -12,13 +12,13 @@ homepage = "https://imageoptim.com/api"
 categories = ["multimedia::images"]
 
 [dependencies]
-imgref = "1.9.2"
-lcms2 = "5.4.1"
+imgref = "1.9.4"
+lcms2 = "5.5.0"
 lodepng = "3.7.0"
-rgb = "0.8.33"
+rgb = "0.8.34"
 rexif = { version = "0.7.3", optional = true }
-mozjpeg = { version = "0.9.3", optional = true }
-aom-decode = { version = "0.2.3", optional = true }
+mozjpeg = { version = "0.9.4", optional = true }
+aom-decode = { version = "0.2.4", optional = true }
 num_cpus = { version = "1.13.1", optional = true }
 libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
 jpeg-decoder = { version = "0.2.6", optional = true }
