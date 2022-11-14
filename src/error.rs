@@ -13,7 +13,6 @@ quick_error! {
         }
         #[cfg(feature = "jpeg")]
         Jpeg(err: jpeg_decoder::Error) {
-            from()
             display("jpeg-decoder: {}", err)
             source(err)
         }
@@ -32,5 +31,13 @@ quick_error! {
         UnsupportedFileFormat {
             display("This file doesn't look like any of the supported image formats")
         }
+    }
+}
+
+#[cfg(feature = "jpeg")]
+impl From<jpeg_decoder::Error> for Error {
+    #[cold]
+    fn from(e: jpeg_decoder::Error) -> Self {
+        Self::Jpeg(e)
     }
 }

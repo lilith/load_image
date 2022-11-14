@@ -88,12 +88,12 @@ impl Loader {
 
         #[cfg(feature = "avif")]
         if data.get(4..4+8) == Some(b"ftypavif") {
-            return self.load_avif(data, meta).map_err(|_| crate::Error::new(28));
+            return self.load_avif(data, meta).map_err(|_| lodepng::Error::new(28).into());
         }
 
         #[cfg(feature = "webp")]
         if data.get(0..4) == Some(b"RIFF") {
-            return self.load_webp(data, meta).map_err(|_| crate::Error::new(28));
+            return self.load_webp(data, meta).map_err(|_| lodepng::Error::new(28).into());
         }
 
         #[cfg(feature = "mozjpeg")]
