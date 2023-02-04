@@ -2,19 +2,14 @@
 
 Glue code for a few libraries that correctly loads a JPEG, PNG, or (optionally) AVIF image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
 
-For Rust 1.51 or later.
-
-
-```toml
-[dependencies]
-load_image = "2"
+```bash
+cargo add load_image
 ```
 
 ```rust
 fn main() {
     let path = std::env::args().nth(1).expect("File name");
-    // the flag is for removing alpha channel
-    let img = load_image::load_image(path, false).unwrap();
+    let img = load_image::load_image(path).unwrap();
 }
 ```
 
