@@ -16,6 +16,9 @@ pub enum Profiles {
 }
 
 pub struct Loader {
+    /// Maximum allowed `width*height` of the image (in pixels).
+    pub max_image_area: usize,
+
     pub(crate) discard_alpha: bool,
     pub(crate) metadata: bool,
     pub(crate) profiles: Profiles,
@@ -28,6 +31,7 @@ impl Loader {
             discard_alpha: false,
             metadata: false,
             profiles: Profiles::NonsRGB,
+            max_image_area: 16000 * 16000,
         }
     }
 
@@ -93,7 +97,7 @@ impl Loader {
 
         #[cfg(feature = "webp")]
         if data.get(0..4) == Some(b"RIFF") {
-            return self.load_webp(data, meta).map_err(|_| lodepng::Error::new(28).into());
+            return self.load_webp(data, meta);
         }
 
         #[cfg(feature = "mozjpeg")]
@@ -123,6 +127,14 @@ impl Loader {
                 }
                 Some(profile)
             }
+        }
+    }
+
+    pub(crate) fn check_dimensions(&self, width: usize, height: usize) -> Result<(), crate::Error> {
+        if width.checked_mul(height).map_or(true, |area| area > self.max_image_area) {
+            Err(crate::Error::ImageTooLarge)
+        } else {
+            Ok(())
         }
     }
 }

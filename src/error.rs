@@ -22,8 +22,12 @@ quick_error! {
             source(err)
             from(_e: TryReserveError) -> (io::Error::new(io::ErrorKind::OutOfMemory, "OOM"))
         }
+        #[cfg(feature = "webp")]
+        WebP {
+            display("WebP decoding failed")
+        }
         ImageTooLarge {
-            display("Max is 10K pixels")
+            display("Image is larger than the allowed maximum dimension")
         }
         UnsupportedJpeg {
             display("Reading of JPEG header failed")

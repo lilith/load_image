@@ -27,6 +27,8 @@ impl Loader {
 
         let width = info.width.into();
         let height = info.height.into();
+        self.check_dimensions(width, height)?;
+
         // FIXME: metadata not preserved
         let meta = ImageMeta::new(Format::Jpeg, vec![], fs_meta);
         let img = match info.pixel_format {

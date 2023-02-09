@@ -4,19 +4,24 @@ use crate::Image;
 use crate::ImageMeta;
 use crate::Loader;
 use imgref::ImgVec;
-use libwebp::error::WebPSimpleError;
 use rgb::FromSlice;
 use std::fs;
 
 impl Loader {
-    pub(crate) fn load_webp(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, WebPSimpleError> {
+    pub(crate) fn load_webp(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, crate::Error> {
         let opts = ImageMeta::new(Format::WebP, vec![], fs_meta);
         if self.discard_alpha {
-            let (w, h, pixels) = libwebp::WebPDecodeRGB(data)?;
-            Ok(Image::from_opts(ImgVec::new(pixels.as_rgb().to_vec(), w as _, h as _), opts))
+            let (w, h, pixels) = libwebp::WebPDecodeRGB(data).map_err(|_| crate::Error::WebP)?;
+            let w = w as usize;
+            let h = h as usize;
+            self.check_dimensions(w, h)?;
+            Ok(Image::from_opts(ImgVec::new(pixels.as_rgb().to_vec(), w, h), opts))
         } else {
-            let (w, h, pixels) = libwebp::WebPDecodeRGBA(data)?;
-            Ok(Image::from_opts(ImgVec::new(pixels.as_rgba().to_vec(), w as _, h as _), opts))
+            let (w, h, pixels) = libwebp::WebPDecodeRGBA(data).map_err(|_| crate::Error::WebP)?;
+            let w = w as usize;
+            let h = h as usize;
+            self.check_dimensions(w, h)?;
+            Ok(Image::from_opts(ImgVec::new(pixels.as_rgba().to_vec(), w, h), opts))
         }
     }
 }
