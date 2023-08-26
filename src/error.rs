@@ -11,7 +11,7 @@ quick_error! {
             display("lodepng: {}", err)
             source(err)
         }
-        #[cfg(feature = "jpeg")]
+        #[cfg(all(feature = "jpeg", not(feature = "mozjpeg")))]
         Jpeg(err: jpeg_decoder::Error) {
             display("jpeg-decoder: {}", err)
             source(err)
@@ -38,7 +38,7 @@ quick_error! {
     }
 }
 
-#[cfg(feature = "jpeg")]
+#[cfg(all(feature = "jpeg", not(feature = "mozjpeg")))]
 impl From<jpeg_decoder::Error> for Error {
     #[cold]
     fn from(e: jpeg_decoder::Error) -> Self {
