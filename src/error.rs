@@ -16,6 +16,10 @@ quick_error! {
             display("jpeg-decoder: {}", err)
             source(err)
         }
+        #[cfg(feature = "mozjpeg")]
+        Jpeg(err: String) {
+            display("mozjpeg: {}", err)
+        }
         Io(err: io::Error) {
             from()
             display("I/O: {}", err)

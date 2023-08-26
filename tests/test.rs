@@ -105,10 +105,10 @@ fn image_implied1998_profile() {
 #[cfg(feature = "mozjpeg")]
 #[allow(deprecated)]
 fn image_gray_profile() {
-    let gp1 = load_path("tests/img/gray-profile.png").unwrap();
-    let gp1o = load_image("tests/img/gray-profile.png", true).unwrap();
-    let gp2 = load_path("tests/img/gray-profile2.png").unwrap();
-    let gp3 = load_path("tests/img/gray-profile.jpg").unwrap();
+    let gp1 = load_path("tests/img/gray-profile.png").expect("tests/img/gray-profile.png");
+    let gp1o = load_image("tests/img/gray-profile.png", true).expect("tests/img/gray-profile.png");
+    let gp2 = load_path("tests/img/gray-profile2.png").expect("tests/img/gray-profile2.png");
+    let gp3 = load_path("tests/img/gray-profile.jpg").expect("tests/img/gray-profile.jpg");
 
     let diff = compare(&gp1, &gp2);
     assert!(diff < 0.0003, "{}", diff);
@@ -242,13 +242,15 @@ fn pngtestsuite() {
 #[allow(deprecated)]
 fn exif_test() {
     for orient in &["top-left", "top-right", "bottom-left", "bottom-right", "left-bottom", "left-top", "right-bottom", "right-top"] {
-        let expected = load_image(format!("tests/img/exif-{}.png", orient), true).unwrap();
-        let actual = load_image(format!("tests/img/exif-{}.jpg", orient), true).unwrap();
+        let png_path = format!("tests/img/exif-{orient}.png");
+        let expected = load_image(&png_path, true).expect(&png_path);
+        let jpeg_path = format!("tests/img/exif-{orient}.jpg");
+        let actual = load_image(&jpeg_path, true).expect(&jpeg_path);
         let diff = compare(&expected, &actual);
 
         assert!(actual.is_opaque());
 
-        assert!(diff <= 0.0002, "orient {} = {}", orient, diff);
+        assert!(diff <= 0.0002, "orient {orient} = {diff}");
         assert_eq!(Format::Jpeg, actual.meta.format);
         assert_eq!(Format::Png, expected.meta.format);
     }

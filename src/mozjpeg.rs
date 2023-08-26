@@ -11,6 +11,7 @@ use rgb::alt::*;
 use rgb::*;
 
 use std::fs;
+use std::io;
 use std::panic;
 
 impl Loader {
@@ -59,8 +60,8 @@ impl Loader {
                     Marker::APP(2), /* Profile */
                 ]
             };
-            let dinfo = Decompress::with_markers(which_markers).from_mem(data).unwrap();
 
+            let dinfo = Decompress::with_markers(which_markers).from_mem(data)?;
             let width = dinfo.width();
             let height = dinfo.height();
 
@@ -86,22 +87,30 @@ impl Loader {
 
             let img = match dinfo.image()? {
                 mozjpeg::Format::RGB(mut dinfo) => {
-                    let mut rgb: Vec<RGB8> = dinfo.read_scanlines().unwrap();
+                    let mut rgb: Vec<RGB8> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
                     rgb.to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::CMYK(mut dinfo) => {
-                    let cmyk: Vec<CMYK> = dinfo.read_scanlines().unwrap();
+                    let cmyk: Vec<CMYK> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
                     cmyk.as_slice().to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::Gray(mut dinfo) => {
-                    let mut g: Vec<GRAY8> = dinfo.read_scanlines().unwrap();
+                    let mut g: Vec<GRAY8> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
                     g.to_image(profile, width, height, true, meta)
                 },
             };
             Ok((img, orientation))
         });
 
-        let (img, orientation) = thread_res.map_err(|_| crate::Error::UnsupportedJpeg)??;
+        let (img, orientation) = thread_res.map_err(|e| {
+            let string = e.downcast::<String>().map(|e| *e)
+                .or_else(|e| e.downcast::<&'static str>().map(|s| String::from(*s)));
+            if let Ok(e) = string {
+                crate::Error::Jpeg(e)
+            } else {
+                crate::Error::UnsupportedJpeg
+            }
+        })??;
 
         Ok(img.rotated(Rotate::from_exif_orientation(orientation)))
     }

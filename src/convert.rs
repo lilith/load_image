@@ -57,9 +57,9 @@ impl ToSRGBImage for &[CMYK] {
         // The image may be CMYK with CMYK profile, but the profile may not work with LCMS
         // So in all cases fall back to a known good profile, since profile-less CMYK is bogus.
         converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
-            self.apply_profile(Profile::new_icc(profiles::CMYK).unwrap())
+            self.apply_profile(Profile::new_icc(profiles::CMYK).ok()?)
         });
-        Image::from_opts(ImgVec::new(converted.unwrap(), width, height), orig_meta)
+        Image::from_opts(ImgVec::new(converted.expect("Unable to apply CMYK profile"), width, height), orig_meta)
     }
 }
 
@@ -103,7 +103,7 @@ impl<T, Converted> Convertible<Converted> for [T]
             return None;
         }
         let dest_profile = if color_space == ColorSpaceSignature::GrayData {
-            Profile::new_icc(profiles::GRAY).unwrap()
+            Profile::new_icc(profiles::GRAY).ok()?
         } else {
             Profile::new_srgb()
         };
