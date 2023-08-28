@@ -34,4 +34,4 @@ struct Image {
 
 The bitmap is packed, so `x + y * width` gives the pixel at `x,y`.
 
-The `load_image` function doesn't panic, but it uses unwinding internally. Error handling won't work in crates compiled with the `panic = "abort"` option.
+The `load_image` function doesn't panic, but if you enable the [`mozjpeg` feature](https://lib.rs/crates/load_image/features), it will depend on unwinding internally, and won't be compatible with crates compiled with `panic = "abort"` option.
