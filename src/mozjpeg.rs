@@ -9,13 +9,11 @@ use lcms2::*;
 use mozjpeg::{Decompress, Marker, ALL_MARKERS};
 use rgb::alt::*;
 use rgb::*;
-
 use std::fs;
-use std::io;
 use std::panic;
 
 impl Loader {
-    fn get_jpeg_profile(&self, dinfo: &Decompress<'_>) -> Option<Profile> {
+    fn get_jpeg_profile<R>(&self, dinfo: &Decompress<R>) -> Option<Profile> {
         let mut profile_markers = Vec::new();
 
         for m in dinfo.markers() {
@@ -39,7 +37,7 @@ impl Loader {
         }
     }
 
-    fn get_exif_data(dinfo: &Decompress<'_>) -> (u16, bool) {
+    fn get_exif_data<R>(dinfo: &Decompress<R>) -> (u16, bool) {
         for m in dinfo.markers() {
             let data = m.data;
             if m.marker != Marker::APP(1) || data.len() < 12 || &data[0..6] != b"Exif\0\0" {
@@ -60,7 +58,6 @@ impl Loader {
                     Marker::APP(2), /* Profile */
                 ]
             };
-
             let dinfo = Decompress::with_markers(which_markers).from_mem(data)?;
             let width = dinfo.width();
             let height = dinfo.height();
@@ -79,7 +76,6 @@ impl Loader {
             } else {
                 None
             };
-
             let chunks = dinfo.markers().map(|m| {
                 (ChunkType::JPEG(m.marker), m.data.to_vec())
             }).collect();
@@ -87,15 +83,15 @@ impl Loader {
 
             let img = match dinfo.image()? {
                 mozjpeg::Format::RGB(mut dinfo) => {
-                    let mut rgb: Vec<RGB8> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+                    let mut rgb: Vec<RGB8> = dinfo.read_scanlines()?;
                     rgb.to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::CMYK(mut dinfo) => {
-                    let cmyk: Vec<CMYK> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+                    let cmyk: Vec<CMYK> = dinfo.read_scanlines()?;
                     cmyk.as_slice().to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::Gray(mut dinfo) => {
-                    let mut g: Vec<GRAY8> = dinfo.read_scanlines().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+                    let mut g: Vec<GRAY8> = dinfo.read_scanlines()?;
                     g.to_image(profile, width, height, true, meta)
                 },
             };
