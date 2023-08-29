@@ -14,13 +14,13 @@ pub struct CMYK {
 unsafe impl rgb::Pod for CMYK {}
 unsafe impl rgb::Zeroable for CMYK {}
 
-pub trait LcmsPixelFormat where Self: Copy {
+pub trait LcmsPixelFormat where Self: Copy + rgb::Pod {
     fn pixel_format() -> (PixelFormat, ColorSpaceSignature);
 }
 
 pub trait LcmsPixelConversion where Self: Copy {
-    type Converted: Copy;
-    type ConvertedOpaque: Copy;
+    type Converted: Copy + rgb::Pod;
+    type ConvertedOpaque: Copy + rgb::Pod;
 }
 
 macro_rules! pixel_conversion {
