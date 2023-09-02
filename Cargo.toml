@@ -4,7 +4,7 @@ description = "Load PNG or JPEG with color profile support"
 keywords = ["load_image"]
 license = "GPL-3.0+"
 name = "load_image"
-version = "3.1.1"
+version = "3.1.2"
 edition = "2021"
 include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "README.md"]
 readme = "README.md"
@@ -14,7 +14,7 @@ rust-version = "1.71"
 
 [dependencies]
 imgref = "1.9.4"
-lcms2 = "6.0.0-alpha.2"
+lcms2 = "6.0.0"
 lodepng = "3.7.2"
 rgb = "0.8.34"
 rexif = { version = "0.7.3", optional = true }
