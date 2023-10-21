@@ -1,15 +1,15 @@
 # Load image as sRGB
 
-Glue code for a few libraries that correctly loads a JPEG, PNG, or (optionally) AVIF image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
+Glue code for a few libraries that correctly loads a JPEG, PNG, or (optionally) WebP or AVIF image into memory, taking into accout color profile metadata in PNG chunks, EXIF data and app markers. Converts CMYK to RGB if needed.
 
 ```bash
 cargo add load_image
 ```
 
 ```rust
-fn main() {
-    let path = std::env::args().nth(1).expect("File name");
-    let img = load_image::load_image(path).unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let path = std::env::args().nth(1).ok_or("Please provide image file path")?;
+    let img = load_image::load_image(path)?;
 }
 ```
 
@@ -32,6 +32,6 @@ struct Image {
 }
 ```
 
-The bitmap is packed, so `x + y * width` gives the pixel at `x,y`.
+The bitmap is packed, so `x + y * width` gives the pixel at `x,y` (use [imgref](https://lib.rs/crates/imgref) for convenient manipulation).
 
 The `load_image` function doesn't panic, but if you enable the [`mozjpeg` feature](https://lib.rs/crates/load_image/features), it will depend on unwinding internally, and won't be compatible with crates compiled with `panic = "abort"` option.
