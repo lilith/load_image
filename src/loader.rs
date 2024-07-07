@@ -26,6 +26,7 @@ pub struct Loader {
 
 impl Loader {
     #[inline(always)]
+    #[must_use]
     pub fn new() -> Self {
         Loader {
             discard_alpha: false,
@@ -105,7 +106,7 @@ impl Loader {
             return self.load_mozjpeg(data, meta);
         }
         #[cfg(all(not(feature = "mozjpeg"), feature = "jpeg"))]
-        if data.get(0) == Some(&0xFF) {
+        if data.first() == Some(&0xFF) {
             return self.load_jpeg(data, meta);
         }
         Err(crate::Error::UnsupportedFileFormat)
@@ -126,7 +127,7 @@ impl Loader {
                     return None;
                 }
                 Some(profile)
-            }
+            },
         }
     }
 

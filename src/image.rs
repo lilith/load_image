@@ -86,6 +86,7 @@ pub enum Rotate {
 }
 
 impl Rotate {
+    #[must_use]
     pub fn from_exif_orientation(orientation: u16) -> Self {
         match orientation {
             2 => Rotate::FlipX,
@@ -103,6 +104,7 @@ impl Rotate {
 impl Image {
     /// True if pixel format doesn't support alpha. This function doesn't check pixels.
     #[inline]
+    #[must_use]
     pub fn is_opaque(&self) -> bool {
         match self.bitmap {
             ImageData::RGB8(_) => true,
@@ -118,6 +120,7 @@ impl Image {
 
     /// Returns an enum with `Img<&[Pixel]>`
     #[inline]
+    #[must_use]
     pub fn as_imgref(&self) -> ImgRefKind<'_> {
         match self.bitmap {
             ImageData::RGB8(ref bitmap) => ImgRefKind::RGB8(ImgRef::new(bitmap, self.width, self.height)),
@@ -133,6 +136,7 @@ impl Image {
 
     /// Returns an enum with `Img<Vec<Pixel>>`
     #[inline]
+    #[must_use]
     pub fn into_imgvec(self) -> ImgVecKind {
         match self.bitmap {
             ImageData::RGB8(bitmap) => ImgVecKind::RGB8(ImgVec::new(bitmap, self.width, self.height)),
@@ -146,6 +150,7 @@ impl Image {
         }
     }
 
+    #[must_use]
     pub fn rotated(self, r: Rotate) -> Image {
         let meta = self.meta;
         match self.bitmap {

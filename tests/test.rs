@@ -3,7 +3,7 @@ use load_image::export::rgb::*;
 use load_image::*;
 
 fn tou16(v: u8) -> u16 {
-    let v = v as u16;
+    let v = u16::from(v);
     (v << 8) | v
 }
 
@@ -36,8 +36,8 @@ fn compare(left: &Image, right: &Image) -> f64 {
     let ppx = left.pixels()
         .zip(right.pixels())
         .map(|(a, b)| {
-            let a = a.map(|c|c as i64);
-            let b = b.map(|c|c as i64);
+            let a = a.map(|c|i64::from(c));
+            let b = b.map(|c|i64::from(c));
             let d = RGBA{
                 r: (a.r*a.a - b.r*b.a),
                 g: (a.g*a.a - b.g*b.a),
@@ -47,7 +47,7 @@ fn compare(left: &Image, right: &Image) -> f64 {
             (d.r.saturating_mul(d.r).saturating_add(d.g.saturating_mul(d.g)).saturating_add(d.b.saturating_mul(d.b)).saturating_add(d.a.saturating_mul(d.a))) as u64 >> 16
         })
         .sum::<u64>() / ((left.width() as u64 * left.height() as u64) << 24);
-    ppx as f64 / (1<<24) as f64
+    ppx as f64 / f64::from(1<<24)
 }
 
 #[test]

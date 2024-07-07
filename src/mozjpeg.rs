@@ -1,8 +1,8 @@
 use crate::convert::*;
+use crate::exif::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
-use crate::exif::*;
 use crate::pixel_format::*;
 use crate::profiles;
 use lcms2::*;
@@ -62,7 +62,7 @@ impl Loader {
             let width = dinfo.width();
             let height = dinfo.height();
 
-            if width*height > 10000*10000 {
+            if width * height > 10000 * 10000 {
                 return Err(crate::Error::ImageTooLarge);
             }
 

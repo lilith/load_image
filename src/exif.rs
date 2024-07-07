@@ -22,7 +22,7 @@ pub(crate) fn parse_exif(data: &[u8]) -> (u16, bool) {
                     }
                 },
                 (ExifTag::Orientation, TagValue::U16(n)) => {
-                    if let Some(&n) = n.get(0) {
+                    if let Some(&n) = n.first() {
                         orientation = n;
                     }
                 },

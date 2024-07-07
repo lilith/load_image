@@ -1,8 +1,8 @@
-use crate::image::*;
-use crate::pixel_format::*;
+use crate::image::{Image, ImageData, ImageMeta};
+use crate::pixel_format::{LcmsPixelConversion, LcmsPixelFormat, CMYK};
 use crate::profiles;
-use imgref::*;
-use lcms2::*;
+use imgref::{Img, ImgVec};
+use lcms2::{ColorSpaceSignature, Intent, Profile, Transform};
 use rgb::alt::*;
 use rgb::*;
 
@@ -33,11 +33,11 @@ macro_rules! copy_alpha_nop {
 
 copy_alpha_nop!{ RGB8 => RGB16 }
 copy_alpha_nop!{ RGB16 => RGB16 }
-copy_alpha_impl!{ RGBA8 => RGBA16, |s:&RGBA8,d:&mut RGBA16|{d.a = s.a as u16 * 257} }
+copy_alpha_impl!{ RGBA8 => RGBA16, |s:&RGBA8,d:&mut RGBA16|{d.a = u16::from(s.a) * 257} }
 copy_alpha_impl!{ RGBA16 => RGBA16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a} }
 copy_alpha_nop!{ GRAY8 => GRAY16 }
 copy_alpha_nop!{ GRAY16 => GRAY16 }
-copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = s.1 as u16 * 257} }
+copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = u16::from(s.1) * 257} }
 copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
 pub trait ToSRGBImage {
@@ -51,14 +51,13 @@ pub trait Convertible<Converted: Copy> {
 #[cfg(any(feature = "jpeg", feature = "mozjpeg"))]
 impl ToSRGBImage for &[CMYK] {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, _opaque: bool, orig_meta: ImageMeta) -> Image {
-        let converted: Option<Vec<<CMYK as LcmsPixelConversion>::Converted>>;
         // The image may be CMYK, but lack any profile
         // The image may be CMYK, but with an RGB profile
         // The image may be CMYK with CMYK profile, but the profile may not work with LCMS
         // So in all cases fall back to a known good profile, since profile-less CMYK is bogus.
-        converted = profile.and_then(|profile| self.apply_profile(profile)).or_else(||{
-            self.apply_profile(Profile::new_icc(profiles::CMYK).ok()?)
-        });
+        let converted: Option<Vec<<CMYK as LcmsPixelConversion>::Converted>> = profile
+            .and_then(|profile| self.apply_profile(profile))
+            .or_else(|| self.apply_profile(Profile::new_icc(profiles::CMYK).ok()?));
         Image::from_opts(ImgVec::new(converted.expect("Unable to apply CMYK profile"), width, height), orig_meta)
     }
 }

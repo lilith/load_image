@@ -4,8 +4,8 @@ use crate::endian::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
-use imgref::*;
-use lcms2::*;
+use imgref::{ImgExt, ImgVec};
+use lcms2::Profile;
 
 use lodepng::ChunkPosition;
 use rgb::alt::Gray;
@@ -78,7 +78,7 @@ impl Loader {
                         let mut graypal: Vec<_> = (0..ncolors).map(|c| Gray((c * 255 / max) as u8)).collect();
                         graypal.to_image(profile, 1, ncolors, true, meta.clone())
                     },
-                    _ => return Err(lodepng::Error::new(59).into())
+                    _ => return Err(lodepng::Error::new(59).into()),
                 };
                 match pal.bitmap {
                     ImageData::RGB8(ref pal) => from_palette(rawdata.buffer.as_ref(), pal, depth, rawdata.width, rawdata.height).map(|i|Image::from_opts(i, meta)),
@@ -98,7 +98,7 @@ impl Loader {
 fn from_palette<T: Copy>(buf: &[u8], pal: &[T], bitdepth: u8, width: usize, height: usize) -> Option<ImgVec<T>> {
     match bitdepth {
         8 => Some(ImgVec::new(buf.iter().map(|&c| pal[c as usize]).collect(), width, height)),
-        depth @ 1 | depth @ 2 | depth @ 4 => {
+        depth @ (1 | 2 | 4) => {
             let px_per_byte = 8 / depth;
             let mask = (1<<depth) - 1;
             Some(ImgVec::new(buf.iter()
