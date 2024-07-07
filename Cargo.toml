@@ -4,27 +4,27 @@ description = "Load PNG or JPEG with color profile support"
 keywords = ["load_image"]
 license = "GPL-3.0+"
 name = "load_image"
-version = "3.1.4"
+version = "3.1.5"
 edition = "2021"
 include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "README.md"]
 readme = "README.md"
 homepage = "https://imageoptim.com/api"
 categories = ["multimedia::images"]
-rust-version = "1.71"
+rust-version = "1.72"
 repository = "https://gitlab.com/kornelski/load_image"
 
 [dependencies]
-imgref = "1.10.0"
-lcms2 = "6.0.0"
-lodepng = "3.9.1"
-rgb = "0.8.36"
+imgref = "1.10.1"
+lcms2 = "6.1.0"
+lodepng = "3.10.2"
+rgb = "0.8.42"
 rexif = { version = "0.7.3", optional = true }
 mozjpeg = { version = "0.10", optional = true }
-aom-decode = { version = "0.2.6", optional = true }
+aom-decode = { version = "0.2.10", optional = true }
 num_cpus = { version = "1.16.0", optional = true }
 libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
-jpeg-decoder = { version = "0.3.0", optional = true }
-bytemuck = "1.14.0"
+jpeg-decoder = { version = "0.3.1", optional = true }
+bytemuck = "1.16.1"
 quick-error = "2.0.1"
 
 [features]

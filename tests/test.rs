@@ -10,9 +10,9 @@ fn tou16(v: u8) -> u16 {
 #[cfg(test)]
 fn convert(img: &Image) -> ImgVec<RGBA16> {
     match img.bitmap {
-        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(tou16).alpha(65535)).collect(), img.width, img.height),
+        ImageData::RGB8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(tou16).with_alpha(65535)).collect(), img.width, img.height),
         ImageData::RGBA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.map(tou16)).collect(), img.width, img.height),
-        ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.alpha(65535)).collect(), img.width, img.height),
+        ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.with_alpha(65535)).collect(), img.width, img.height),
         ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.clone(), img.width, img.height),
         ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|{
             let c = tou16(c.0);
