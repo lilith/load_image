@@ -1,6 +1,8 @@
-use lcms2::*;
-use rgb::alt::*;
+use lcms2::{ColorSpaceSignature, PixelFormat};
 use rgb::*;
+
+use rgb::bytemuck::Pod;
+use rgb::bytemuck::Zeroable;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -11,16 +13,16 @@ pub struct CMYK {
     pub k: u8,
 }
 
-unsafe impl rgb::Pod for CMYK {}
-unsafe impl rgb::Zeroable for CMYK {}
+unsafe impl Pod for CMYK {}
+unsafe impl Zeroable for CMYK {}
 
-pub trait LcmsPixelFormat where Self: Copy + rgb::Pod {
+pub trait LcmsPixelFormat where Self: Copy + Pod {
     fn pixel_format() -> (PixelFormat, ColorSpaceSignature);
 }
 
 pub trait LcmsPixelConversion where Self: Copy {
-    type Converted: Copy + rgb::Pod;
-    type ConvertedOpaque: Copy + rgb::Pod;
+    type Converted: Copy + Pod;
+    type ConvertedOpaque: Copy + Pod;
 }
 
 macro_rules! pixel_conversion {

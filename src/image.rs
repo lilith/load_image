@@ -67,10 +67,10 @@ pub enum ImageData {
     RGBA8(Vec<rgb::RGBA8>),
     RGB16(Vec<rgb::RGB16>),
     RGBA16(Vec<rgb::RGBA16>),
-    GRAY8(Vec<rgb::alt::GRAY8>),
-    GRAY16(Vec<rgb::alt::GRAY16>),
-    GRAYA8(Vec<rgb::alt::GRAYA8>),
-    GRAYA16(Vec<rgb::alt::GRAYA16>),
+    GRAY8(Vec<crate::export::rgb::GRAY8>),
+    GRAY16(Vec<crate::export::rgb::GRAY16>),
+    GRAYA8(Vec<crate::export::rgb::GRAYA8>),
+    GRAYA16(Vec<crate::export::rgb::GRAYA16>),
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

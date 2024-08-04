@@ -1,10 +1,12 @@
 use crate::image::{Image, ImageData, ImageMeta};
-use crate::pixel_format::{LcmsPixelConversion, LcmsPixelFormat, CMYK};
+use crate::pixel_format::{LcmsPixelConversion, LcmsPixelFormat};
+#[cfg(any(feature = "jpeg", feature = "mozjpeg"))]
+use crate::pixel_format::CMYK;
 use crate::profiles;
 use imgref::{Img, ImgVec};
 use lcms2::{ColorSpaceSignature, Intent, Profile, Transform};
-use rgb::alt::*;
-use rgb::*;
+use crate::export::rgb::{RGB16, RGB8, RGBA16, RGBA8, GRAY8, GRAY16, GRAYA8, GRAYA16};
+use rgb::bytemuck::cast_slice;
 
 pub trait CopyAlpha<Converted: Copy> where Self: Copy {
     fn copy_alpha(src: &[Self], dst: &mut [Converted]);
@@ -157,7 +159,7 @@ impl_img!(GRAYA16);
 
 impl FromOptions<ImgVec<u8>> for Image {
     fn from_opts(bitmap: ImgVec<u8>, meta: ImageMeta) -> Image {
-        let bitmap = bitmap.new_buf(bitmap.buf().as_pixels());
+        let bitmap = bitmap.new_buf(cast_slice(bitmap.buf()));
         let (bitmap, width, height) = bitmap.to_contiguous_buf();
         Image {
             width,
@@ -170,7 +172,7 @@ impl FromOptions<ImgVec<u8>> for Image {
 
 impl FromOptions<ImgVec<u16>> for Image {
     fn from_opts(bitmap: ImgVec<u16>, meta: ImageMeta) -> Image {
-        let bitmap = bitmap.new_buf(bitmap.buf().as_pixels());
+        let bitmap = bitmap.new_buf(cast_slice(bitmap.buf()));
         let (bitmap, width, height) = bitmap.to_contiguous_buf();
         Image {
             width,

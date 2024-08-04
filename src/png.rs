@@ -4,11 +4,11 @@ use crate::endian::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
-use imgref::{ImgExt, ImgVec};
+use imgref::ImgVec;
 use lcms2::Profile;
 
 use lodepng::ChunkPosition;
-use rgb::alt::Gray;
+use rgb::Gray;
 use std::fs;
 
 impl Loader {

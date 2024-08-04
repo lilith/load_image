@@ -60,6 +60,10 @@ pub mod export {
     pub mod rgb {
         pub use ::rgb::alt::*;
         pub use ::rgb::*;
+        pub type GRAY16 = ::rgb::Gray<u16>;
+        pub type GRAY8 = ::rgb::Gray<u8>;
+        pub type GRAYA16 = ::rgb::GrayAlpha<u16>;
+        pub type GRAYA8 = ::rgb::GrayAlpha<u8>;
     }
 
     /// Re-export of the [`imgref`](https://lib.rs/crates/imgref) crate
@@ -73,10 +77,10 @@ pub mod export {
             RGBA8(ImgRef<'data, rgb::RGBA8>),
             RGB16(ImgRef<'data, rgb::RGB16>),
             RGBA16(ImgRef<'data, rgb::RGBA16>),
-            GRAY8(ImgRef<'data, rgb::GRAY8>),
-            GRAY16(ImgRef<'data, rgb::GRAY16>),
-            GRAYA8(ImgRef<'data, rgb::GRAYA8>),
-            GRAYA16(ImgRef<'data, rgb::GRAYA16>),
+            GRAY8(ImgRef<'data, crate::export::rgb::GRAY8>),
+            GRAY16(ImgRef<'data, crate::export::rgb::GRAY16>),
+            GRAYA8(ImgRef<'data, crate::export::rgb::GRAYA8>),
+            GRAYA16(ImgRef<'data, crate::export::rgb::GRAYA16>),
         }
 
         #[derive(Debug, Clone, PartialEq, Eq)]
@@ -85,10 +89,10 @@ pub mod export {
             RGBA8(ImgVec<rgb::RGBA8>),
             RGB16(ImgVec<rgb::RGB16>),
             RGBA16(ImgVec<rgb::RGBA16>),
-            GRAY8(ImgVec<rgb::GRAY8>),
-            GRAY16(ImgVec<rgb::GRAY16>),
-            GRAYA8(ImgVec<rgb::GRAYA8>),
-            GRAYA16(ImgVec<rgb::GRAYA16>),
+            GRAY8(ImgVec<crate::export::rgb::GRAY8>),
+            GRAY16(ImgVec<crate::export::rgb::GRAY16>),
+            GRAYA8(ImgVec<crate::export::rgb::GRAYA8>),
+            GRAYA16(ImgVec<crate::export::rgb::GRAYA16>),
         }
     }
 }
