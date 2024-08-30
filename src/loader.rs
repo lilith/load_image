@@ -61,6 +61,15 @@ impl Loader {
         self
     }
 
+    /// Maximum image size specified as total number of pixels (`area == width*height`)
+    ///
+    /// Images larger than this will fail to load. This protects programs from using too much memory.
+    #[inline(always)]
+    pub fn max_image_area(&mut self, max_image_area: usize) -> &mut Self {
+        self.max_image_area = max_image_area;
+        self
+    }
+
     /// `-` is treated as stdin
     pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, crate::Error> {
         let path = path.as_ref();

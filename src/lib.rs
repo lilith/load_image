@@ -32,24 +32,24 @@ pub use crate::image::*;
 pub use crate::loader::*;
 use std::path::Path;
 
-/// Load image from file path
+/// Load image from file path. Use [`Loader`] to configure it.
 pub fn load_path(path: impl AsRef<Path>) -> Result<Image, Error> {
     Loader::new().load_path(path)
 }
 
-/// Load image from file data in memory
+/// Load image from file data in memory. Use [`Loader`] to configure it.
 pub fn load_data(data: &[u8]) -> Result<Image, Error> {
     Loader::new().load_data(data)
 }
 
 #[doc(hidden)]
-#[deprecated(note = "use load_path")]
+#[deprecated(note = "use load_path or Loader::new()")]
 pub fn load_image(path: impl AsRef<Path>, opaque: bool) -> Result<Image, Error> {
     Loader::new().opaque(opaque).load_path(path)
 }
 
 #[doc(hidden)]
-#[deprecated(note = "use load_data")]
+#[deprecated(note = "use load_data or Loader::new()")]
 pub fn load_image_data(data: &[u8], opaque: bool) -> Result<Image, Error> {
     Loader::new().opaque(opaque).load_data(data)
 }
