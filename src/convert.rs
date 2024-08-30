@@ -8,7 +8,7 @@ use lcms2::{ColorSpaceSignature, Intent, Profile, Transform};
 use crate::export::rgb::{RGB16, RGB8, RGBA16, RGBA8, GRAY8, GRAY16, GRAYA8, GRAYA16};
 use rgb::bytemuck::cast_slice;
 
-pub trait CopyAlpha<Converted: Copy> where Self: Copy {
+pub(crate) trait CopyAlpha<Converted: Copy> where Self: Copy {
     fn copy_alpha(src: &[Self], dst: &mut [Converted]);
 }
 
@@ -42,11 +42,11 @@ copy_alpha_nop!{ GRAY16 => GRAY16 }
 copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = u16::from(s.1) * 257} }
 copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
 
-pub trait ToSRGBImage {
+pub(crate) trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, discard_alpha: bool, orig_meta: ImageMeta) -> Image;
 }
 
-pub trait Convertible<Converted: Copy> {
+pub(crate) trait Convertible<Converted: Copy> {
     fn apply_profile(&self, profile: Profile) -> Option<Vec<Converted>>;
 }
 

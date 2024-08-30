@@ -5,9 +5,10 @@ use std::io;
 use std::io::Read;
 use std::path::Path;
 
-#[derive(Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Default)]
 pub enum Profiles {
     /// Apply all profiles
+    #[default]
     All,
     /// Do not support profiles (gives incorrectly-looking images, but doesn't change pixel values)
     None,
@@ -15,6 +16,7 @@ pub enum Profiles {
     NonsRGB,
 }
 
+#[derive(Clone, Default)]
 pub struct Loader {
     /// Maximum allowed `width*height` of the image (in pixels).
     pub max_image_area: usize,
