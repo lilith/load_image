@@ -9,7 +9,7 @@ impl NativeEndian for [RGB16] {
     #[inline]
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
-            *n = RGB {
+            *n = Rgb {
                 r: u16::from_be(n.r),
                 g: u16::from_be(n.g),
                 b: u16::from_be(n.b),
@@ -23,7 +23,7 @@ impl NativeEndian for [RGBA16] {
     #[inline]
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
-            *n = RGBA {
+            *n = Rgba {
                 r: u16::from_be(n.r),
                 g: u16::from_be(n.g),
                 b: u16::from_be(n.b),

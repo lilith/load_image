@@ -17,7 +17,7 @@ repository = "https://gitlab.com/kornelski/load_image"
 imgref = "1.10.1"
 lcms2 = "6.1.0"
 lodepng = "3.10.3"
-rgb = { version = "0.8.47", default-features = false, features = ["bytemuck"] }
+rgb = { version = "0.8.49", default-features = false, features = ["bytemuck"] }
 rexif = { version = "0.7.4", optional = true }
 mozjpeg = { version = "0.10", optional = true }
 aom-decode = { version = "0.2.10", optional = true }

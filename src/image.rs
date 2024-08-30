@@ -1,3 +1,4 @@
+use rgb::RGBA8;
 use crate::convert::FromOptions;
 use crate::format::Format;
 use std::fs;
@@ -5,6 +6,7 @@ use std::fs;
 use std::io;
 #[cfg(feature = "stat")]
 use std::time;
+use rgb::prelude::*;
 
 use crate::export::imgref::{ImgRef, ImgRefKind, ImgVec, ImgVecKind};
 
@@ -52,6 +54,9 @@ impl ImageMeta {
     }
 }
 
+/// The pixels are in the [`Image::bitmap`] field
+///
+/// Use [`Image::into_rgba`] if you don't want to deal with multiple pixel formats.
 #[derive(Debug, Clone)]
 pub struct Image {
     pub width: usize,
@@ -61,6 +66,10 @@ pub struct Image {
 }
 
 /// Pixels of the image
+///
+/// The dimensions are in the [`Image`] object owning these. See also [`Image::as_imgref`].
+///
+/// Call [`Image::into_rgba`] if you don't want to deal with these
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageData {
     RGB8(Vec<rgb::RGB8>),
@@ -102,6 +111,27 @@ impl Rotate {
 }
 
 impl Image {
+    /// Convert pixels to RGBA format. The second returned element is the [`ImageMeta`] object.
+    pub fn into_rgba(self) -> (ImgVec<rgb::RGBA8>, ImageMeta) {
+        let bitmap = match self.bitmap {
+            ImageData::RGB8(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.with_alpha(255)).collect(), self.width, self.height),
+            ImageData::RGBA8(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.with_alpha(255)).collect(), self.width, self.height),
+            ImageData::RGB16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.map(|c| (c >> 8) as u8).with_alpha(255)).collect(), self.width, self.height),
+            ImageData::RGBA16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.map(|c| (c >> 8) as u8)).collect(), self.width, self.height),
+            ImageData::GRAY8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.0,g.0,g.0,255)).collect(), self.width, self.height),
+            ImageData::GRAY16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| {
+                let g = (px.value() >> 8) as u8;
+                RGBA8::new(g,g,g,255)
+            }).collect(), self.width, self.height),
+            ImageData::GRAYA8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.value(), g.value(), g.value(), g.1)).collect(), self.width, self.height),
+            ImageData::GRAYA16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| {
+                let g = (px.value() >> 8) as u8;
+                RGBA8::new(g,g,g, (px.1 >> 8) as u8)
+            }).collect(), self.width, self.height),
+        };
+        (bitmap, self.meta)
+    }
+
     /// True if pixel format doesn't support alpha. This function doesn't check pixels.
     #[inline]
     #[must_use]
@@ -118,7 +148,7 @@ impl Image {
         }
     }
 
-    /// Returns an enum with `Img<&[Pixel]>`
+    /// Returns an enum with `Img<&[Pixel]>`, which is like a 2D slice.
     #[inline]
     #[must_use]
     pub fn as_imgref(&self) -> ImgRefKind<'_> {
