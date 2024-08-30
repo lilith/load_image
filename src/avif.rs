@@ -10,7 +10,7 @@ use std::fs;
 impl Loader {
     pub(crate) fn load_avif(&self, data: &[u8], fs_meta: Option<fs::Metadata>) -> Result<Image, aom_decode::Error> {
         let mut d = avif::Avif::decode(data, &Config {
-            threads: num_cpus::get(),
+            threads: std::thread::available_parallelism().map(|t| t.get()).unwrap_or(4),
         })?;
 
         let meta = ImageMeta::new(Format::Avif, vec![], fs_meta);
