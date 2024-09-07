@@ -45,7 +45,7 @@ impl ImageMeta {
         fn time(t: Result<time::SystemTime, io::Error>) -> Option<u64> {
             t.ok().and_then(|d| d.duration_since(time::UNIX_EPOCH).ok()).map(|d| d.as_secs())
         }
-        ImageMeta {
+        Self {
             format,
             chunks,
             created: fs_meta.as_ref().and_then(|stat| time(stat.created())).unwrap_or(1638573452),
@@ -96,22 +96,23 @@ pub enum Rotate {
 
 impl Rotate {
     #[must_use]
-    pub fn from_exif_orientation(orientation: u16) -> Self {
+    pub const fn from_exif_orientation(orientation: u16) -> Self {
         match orientation {
-            2 => Rotate::FlipX,
-            3 => Rotate::D180,
-            4 => Rotate::D180FlipX,
-            5 => Rotate::D270FlipX,
-            6 => Rotate::D270,
-            7 => Rotate::D90FlipX,
-            8 => Rotate::D90,
-            _ => Rotate::None,
+            2 => Self::FlipX,
+            3 => Self::D180,
+            4 => Self::D180FlipX,
+            5 => Self::D270FlipX,
+            6 => Self::D270,
+            7 => Self::D90FlipX,
+            8 => Self::D90,
+            _ => Self::None,
         }
     }
 }
 
 impl Image {
     /// Convert pixels to RGBA format. The second returned element is the [`ImageMeta`] object.
+    #[must_use]
     pub fn into_rgba(self) -> (ImgVec<rgb::RGBA8>, ImageMeta) {
         let bitmap = match self.bitmap {
             ImageData::RGB8(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.with_alpha(255)).collect(), self.width, self.height),
@@ -135,7 +136,7 @@ impl Image {
     /// True if pixel format doesn't support alpha. This function doesn't check pixels.
     #[inline]
     #[must_use]
-    pub fn is_opaque(&self) -> bool {
+    pub const fn is_opaque(&self) -> bool {
         match self.bitmap {
             ImageData::RGB8(_) => true,
             ImageData::RGBA8(_) => false,
@@ -181,7 +182,7 @@ impl Image {
     }
 
     #[must_use]
-    pub fn rotated(self, r: Rotate) -> Image {
+    pub fn rotated(self, r: Rotate) -> Self {
         let meta = self.meta;
         match self.bitmap {
             ImageData::RGB8(bitmap) => Self::from_opts(Self::rotated_bitmap(ImgVec::new(bitmap, self.width, self.height), r), meta),

@@ -123,7 +123,7 @@ impl<T, Converted> Convertible<Converted> for [T]
 
 impl From<Image> for Img<ImageData> {
     fn from(img: Image) -> Self {
-        Img::new(img.bitmap, img.width, img.height)
+        Self::new(img.bitmap, img.width, img.height)
     }
 }
 
@@ -158,10 +158,10 @@ impl_img!(GRAYA8);
 impl_img!(GRAYA16);
 
 impl FromOptions<ImgVec<u8>> for Image {
-    fn from_opts(bitmap: ImgVec<u8>, meta: ImageMeta) -> Image {
+    fn from_opts(bitmap: ImgVec<u8>, meta: ImageMeta) -> Self {
         let bitmap = bitmap.new_buf(cast_slice(bitmap.buf()));
         let (bitmap, width, height) = bitmap.to_contiguous_buf();
-        Image {
+        Self {
             width,
             height,
             meta,
@@ -171,10 +171,10 @@ impl FromOptions<ImgVec<u8>> for Image {
 }
 
 impl FromOptions<ImgVec<u16>> for Image {
-    fn from_opts(bitmap: ImgVec<u16>, meta: ImageMeta) -> Image {
+    fn from_opts(bitmap: ImgVec<u16>, meta: ImageMeta) -> Self {
         let bitmap = bitmap.new_buf(cast_slice(bitmap.buf()));
         let (bitmap, width, height) = bitmap.to_contiguous_buf();
-        Image {
+        Self {
             width,
             height,
             meta,

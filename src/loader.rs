@@ -113,7 +113,7 @@ impl Loader {
         }
 
         #[cfg(feature = "mozjpeg")]
-        if data.get(0) == Some(&0xFF) {
+        if data.first() == Some(&0xFF) {
             return self.load_mozjpeg(data, meta);
         }
         #[cfg(all(not(feature = "mozjpeg"), feature = "jpeg"))]

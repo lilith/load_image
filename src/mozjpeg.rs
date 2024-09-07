@@ -3,11 +3,10 @@ use crate::exif::*;
 use crate::format::*;
 use crate::image::*;
 use crate::loader::*;
-use crate::pixel_format::*;
+use crate::pixel_format::CMYK;
 use crate::profiles;
-use lcms2::*;
+use lcms2::Profile;
 use mozjpeg::{Decompress, Marker, ALL_MARKERS};
-use rgb::alt::*;
 use rgb::*;
 use std::fs;
 use std::panic;
@@ -91,7 +90,7 @@ impl Loader {
                     cmyk.as_slice().to_image(profile, width, height, true, meta)
                 },
                 mozjpeg::Format::Gray(mut dinfo) => {
-                    let mut g: Vec<GRAY8> = dinfo.read_scanlines()?;
+                    let mut g: Vec<rgb::alt::Gray<u8>> = dinfo.read_scanlines()?;
                     g.to_image(profile, width, height, true, meta)
                 },
             };

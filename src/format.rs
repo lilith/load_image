@@ -14,6 +14,6 @@ pub enum Format {
 impl Default for Format {
     #[inline(always)]
     fn default() -> Self {
-        Format::Unknown
+        Self::Unknown
     }
 }

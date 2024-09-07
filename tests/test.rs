@@ -36,8 +36,8 @@ fn compare(left: &Image, right: &Image) -> f64 {
     let ppx = left.pixels()
         .zip(right.pixels())
         .map(|(a, b)| {
-            let a = a.map(|c|i64::from(c));
-            let b = b.map(|c|i64::from(c));
+            let a = a.map(i64::from);
+            let b = b.map(i64::from);
             let d = RGBA{
                 r: (a.r*a.a - b.r*b.a),
                 g: (a.g*a.a - b.g*b.a),
@@ -98,7 +98,7 @@ fn image_implied1998_profile() {
     let expected = load_image("tests/img/adobe1998assrgb.jpg", true).unwrap();
 
     let diff = compare(&adobe98, &expected);
-    assert!(diff < 0.0008, "98 {}", diff);
+    assert!(diff < 0.0008, "98 {diff}");
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn image_load_no_profiles() {
 
     let strip_jpg = load_path("tests/img/profile-stripped.jpg").unwrap();
     let diff = compare(&strip_jpg, &prof_jpg);
-    assert!(diff < 0.002, "{} jpg", diff);
+    assert!(diff < 0.002, "{diff} jpg");
 
     match prof_jpg.bitmap {
         ImageData::RGB8(_) => {},
