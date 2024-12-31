@@ -33,6 +33,8 @@ pub use crate::loader::*;
 use std::path::Path;
 
 /// Load image from file path. Use [`Loader`] to configure it.
+///
+/// Pixels will be in sRGB color space. To load DisplayP3 or other, use [`Loader`].
 pub fn load_path(path: impl AsRef<Path>) -> Result<Image, Error> {
     Loader::new().load_path(path)
 }

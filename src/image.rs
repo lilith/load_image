@@ -57,6 +57,8 @@ impl ImageMeta {
 /// The pixels are in the [`Image::bitmap`] field
 ///
 /// Use [`Image::into_rgba`] if you don't want to deal with multiple pixel formats.
+///
+/// Pixels will be in sRGB color space.
 #[derive(Debug, Clone)]
 pub struct Image {
     pub width: usize,
@@ -70,6 +72,8 @@ pub struct Image {
 /// The dimensions are in the [`Image`] object owning these. See also [`Image::as_imgref`].
 ///
 /// Call [`Image::into_rgba`] if you don't want to deal with these
+///
+/// Pixels will be in sRGB color space.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageData {
     RGB8(Vec<rgb::RGB8>),

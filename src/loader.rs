@@ -7,13 +7,13 @@ use std::path::Path;
 
 #[derive(Copy, Clone, Eq, PartialEq, Default)]
 pub enum Profiles {
-    /// Apply all profiles
+    /// Convert everything to sRGB.
     #[default]
     All,
-    /// Do not support profiles (gives incorrectly-looking images, but doesn't change pixel values)
-    None,
-    /// Apply profiles only if they don't appear to be sRGB
+    /// Convert everything to sRGB, with an optimization that sRGB-to-sRGB conversion is skipped.
     NonsRGB,
+    /// Return incorrect colors by ignoring color profiles.
+    None,
 }
 
 #[derive(Clone, Default)]
@@ -70,7 +70,9 @@ impl Loader {
         self
     }
 
-    /// `-` is treated as stdin
+    /// Decode an image from the given path
+    ///
+    /// `-` is treated as stdin (use `./-` to load a file with a dash filename)
     pub fn load_path<P: AsRef<Path>>(&self, path: P) -> Result<Image, crate::Error> {
         let path = path.as_ref();
         let mut data = Vec::new();
@@ -92,6 +94,7 @@ impl Loader {
         self.load_data_with_stat(&data, stat)
     }
 
+    /// Decode/decompress an image from the given bytes
     #[inline(always)]
     pub fn load_data(&self, data: &[u8]) -> Result<Image, crate::Error> {
         self.load_data_with_stat(data, None)
