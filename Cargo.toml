@@ -16,7 +16,7 @@ repository = "https://gitlab.com/kornelski/load_image"
 [dependencies]
 imgref = "1.10.1"
 lcms2 = "6.1.0"
-lodepng = { version = "3.12.1", default-features = false }
+lodepng = { version = "3.12.1", default-features = false, features = ["rust_backend"] }
 rgb = { version = "0.8.52", default-features = false, features = ["bytemuck"] }
 rexif = { version = "0.7.4", optional = true }
 mozjpeg = { version = "0.10", optional = true }
