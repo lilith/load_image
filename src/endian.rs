@@ -37,7 +37,7 @@ impl NativeEndian for [RGBA16] {
 impl NativeEndian for [GrayAlpha<u16>] {
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
-            *n = GrayAlpha(u16::from_be(n.0), u16::from_be(n.1));
+            *n = GrayAlpha(u16::from_be(n.v), u16::from_be(n.a));
         }
         self
     }
@@ -46,7 +46,7 @@ impl NativeEndian for [GrayAlpha<u16>] {
 impl NativeEndian for [Gray<u16>] {
     fn to_native(&mut self) -> &mut Self {
         for n in self.iter_mut() {
-            *n = Gray(u16::from_be(n.0));
+            *n = Gray(u16::from_be(n.value()));
         }
         self
     }

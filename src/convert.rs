@@ -39,8 +39,8 @@ copy_alpha_impl!{ RGBA8 => RGBA16, |s:&RGBA8,d:&mut RGBA16|{d.a = u16::from(s.a)
 copy_alpha_impl!{ RGBA16 => RGBA16, |s:&RGBA16,d:&mut RGBA16|{d.a = s.a} }
 copy_alpha_nop!{ GRAY8 => GRAY16 }
 copy_alpha_nop!{ GRAY16 => GRAY16 }
-copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.1 = u16::from(s.1) * 257} }
-copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.1 = s.1} }
+copy_alpha_impl!{ GRAYA8 => GRAYA16, |s:&GRAYA8,d:&mut GRAYA16|{d.a = u16::from(s.a) * 257} }
+copy_alpha_impl!{ GRAYA16 => GRAYA16, |s:&GRAYA16,d:&mut GRAYA16|{d.a = s.a} }
 
 pub(crate) trait ToSRGBImage {
     fn to_image(&mut self, profile: Option<Profile>, width: usize, height: usize, discard_alpha: bool, orig_meta: ImageMeta) -> Image;

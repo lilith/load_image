@@ -123,15 +123,15 @@ impl Image {
             ImageData::RGBA8(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.with_alpha(255)).collect(), self.width, self.height),
             ImageData::RGB16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.map(|c| (c >> 8) as u8).with_alpha(255)).collect(), self.width, self.height),
             ImageData::RGBA16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| px.map(|c| (c >> 8) as u8)).collect(), self.width, self.height),
-            ImageData::GRAY8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.0,g.0,g.0,255)).collect(), self.width, self.height),
+            ImageData::GRAY8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.value(),g.value(),g.value(),255)).collect(), self.width, self.height),
             ImageData::GRAY16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| {
                 let g = (px.value() >> 8) as u8;
                 RGBA8::new(g,g,g,255)
             }).collect(), self.width, self.height),
-            ImageData::GRAYA8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.value(), g.value(), g.value(), g.1)).collect(), self.width, self.height),
+            ImageData::GRAYA8(bitmap) => ImgVec::new(bitmap.into_iter().map(|g| RGBA8::new(g.v, g.v, g.v, g.a)).collect(), self.width, self.height),
             ImageData::GRAYA16(bitmap) => ImgVec::new(bitmap.into_iter().map(|px| {
                 let g = (px.value() >> 8) as u8;
-                RGBA8::new(g,g,g, (px.1 >> 8) as u8)
+                RGBA8::new(g,g,g, (px.a >> 8) as u8)
             }).collect(), self.width, self.height),
         };
         (bitmap, self.meta)

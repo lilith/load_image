@@ -22,14 +22,14 @@ impl IsTransparentPixel for RGBA16 {
 impl IsTransparentPixel for GrayAlpha<u8> {
     #[inline]
     fn is_transparent(&self) -> bool {
-        self.1 != 255
+        self.a != 255
     }
 }
 
 impl IsTransparentPixel for GrayAlpha<u16> {
     #[inline]
     fn is_transparent(&self) -> bool {
-        self.1 != 65535
+        self.a != 65535
     }
 }
 

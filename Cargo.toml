@@ -16,8 +16,8 @@ repository = "https://gitlab.com/kornelski/load_image"
 [dependencies]
 imgref = "1.10.1"
 lcms2 = "6.1.0"
-lodepng = "3.10.7"
-rgb = { version = "0.8.50", default-features = false, features = ["bytemuck"] }
+lodepng = { version = "3.12.1", default-features = false }
+rgb = { version = "0.8.52", default-features = false, features = ["bytemuck"] }
 rexif = { version = "0.7.4", optional = true }
 mozjpeg = { version = "0.10", optional = true }
 aom-decode = { version = "0.2.10", optional = true, features = ["avif"] }
@@ -27,7 +27,7 @@ bytemuck = "1.16.3"
 quick-error = "2.0.1"
 
 [features]
-default = ["jpeg"]
+default = ["jpeg", "zlibrs"]
 # Instead of a Rust-native JPEG decoder, use MozJPEG. It might be faster. It's in C.
 mozjpeg = ["dep:mozjpeg", "dep:rexif"]
 jpeg = ["dep:jpeg-decoder", "dep:rexif"]
@@ -41,6 +41,12 @@ webp = ["dep:libwebp"]
 webp-static = ["webp", "libwebp?/static"]
 # Link lcms2 statically for redistrbutable binaries.
 lcms2-static = ["lcms2/static"]
+
+# Use zlib-rs for PNG decoding
+zlibrs = ["lodepng/zlibrs"]
+
+# Use cf-zlib for PNG decoding
+cfzlib = ["lodepng/cfzlib"]
 
 # Link everything statically
 static = ["lcms2-static", "libwebp?/static"]

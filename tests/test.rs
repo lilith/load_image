@@ -15,15 +15,15 @@ fn convert(img: &Image) -> ImgVec<RGBA16> {
         ImageData::RGB16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|c.with_alpha(65535)).collect(), img.width, img.height),
         ImageData::RGBA16(ref bitmap) => ImgVec::new(bitmap.clone(), img.width, img.height),
         ImageData::GRAY8(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|{
-            let c = tou16(c.0);
+            let c = tou16(c.value());
             RGBA::new(c,c,c,65535)
         }).collect(), img.width, img.height),
         ImageData::GRAYA8(ref bitmap) => ImgVec::new(bitmap.iter().map(|p|{
-            let c = tou16(p.0);
-            RGBA::new(c,c,c,tou16(p.1))
+            let c = tou16(p.v);
+            RGBA::new(c,c,c,tou16(p.a))
         }).collect(), img.width, img.height),
-        ImageData::GRAY16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|RGBA::new(c.0,c.0,c.0,65535)).collect(), img.width, img.height),
-        ImageData::GRAYA16(ref bitmap) => ImgVec::new(bitmap.iter().map(|p|{RGBA::new(p.0,p.0,p.0,p.1)}).collect(), img.width, img.height),
+        ImageData::GRAY16(ref bitmap) => ImgVec::new(bitmap.iter().map(|c|RGBA::new(c.value(),c.value(),c.value(),65535)).collect(), img.width, img.height),
+        ImageData::GRAYA16(ref bitmap) => ImgVec::new(bitmap.iter().map(|p|{RGBA::new(p.v,p.v,p.v,p.a)}).collect(), img.width, img.height),
     }
 }
 
