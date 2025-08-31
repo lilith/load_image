@@ -2,20 +2,20 @@
 authors = ["Kornel <pornel@pornel.net>"]
 description = "Load PNG or JPEG with color profile support"
 keywords = ["load_image"]
-license = "GPL-3.0+"
+license = "BSD-3-Clause"
 name = "load_image"
-version = "3.3.0"
+version = "3.3.1"
 edition = "2021"
-include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "README.md"]
+include = ["src/*.rs", "src/*.icc", "Cargo.toml", "COPYING", "LICENSE", "README.md"]
 readme = "README.md"
+repository = "https://codeberg.org/kornelski/load_image"
 homepage = "https://imageoptim.com/api"
 categories = ["multimedia::images"]
-rust-version = "1.72"
-repository = "https://gitlab.com/kornelski/load_image"
+rust-version = "1.83"
 
 [dependencies]
 imgref = "1.11.0"
-lcms2 = "6.1.0"
+lcms2 = "6.1.1"
 lodepng = { version = "3.12.1", default-features = false, features = ["rust_backend"] }
 rgb = { version = "0.8.52", default-features = false, features = ["bytemuck"] }
 rexif = { version = "0.7.5", optional = true }
@@ -23,7 +23,7 @@ mozjpeg = { version = "0.10", optional = true }
 aom-decode = { version = "0.2.13", optional = true, features = ["avif"] }
 libwebp = { version = "0.1.2", features = ["1_1"], optional = true }
 jpeg-decoder = { version = "0.3.2", optional = true }
-bytemuck = "1.23.1"
+bytemuck = "1.23.2"
 quick-error = "2.0.1"
 
 [features]
