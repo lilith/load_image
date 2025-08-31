@@ -37,7 +37,7 @@ pub struct ImageMeta {
 impl ImageMeta {
     #[cfg(not(feature = "stat"))]
     pub(crate) fn new(format: Format, chunks: ImageMetaChunks, _: Option<fs::Metadata>) -> Self {
-        ImageMeta { format, chunks }
+        Self { format, chunks }
     }
 
     #[cfg(feature = "stat")]

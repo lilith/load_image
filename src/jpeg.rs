@@ -3,13 +3,13 @@ use lodepng::Grey;
 
 use crate::convert::ToSRGBImage;
 use crate::exif::parse_exif;
-use crate::format::*;
-use crate::image::*;
-use crate::loader::*;
-use crate::pixel_format::*;
+use crate::format::Format;
+use crate::image::{Image, ImageMeta, Rotate};
+use crate::loader::Loader;
+use crate::pixel_format::CMYK;
 use jpeg_decoder::PixelFormat;
-use lcms2::*;
-use rgb::*;
+use lcms2::Profile;
+use rgb::{bytemuck, FromSlice};
 use std::fs;
 
 impl Loader {
@@ -19,7 +19,7 @@ impl Loader {
         let info = dec.info().ok_or(crate::Error::UnsupportedJpeg)?;
         let exif = dec.exif_data();
 
-        let (orientation, is_adobe_1998) = exif.map(parse_exif).unwrap_or((1, false));
+        let (orientation, is_adobe_1998) = exif.map_or((1, false), parse_exif);
 
         let profile = dec.icc_profile().as_deref()
             .or(if is_adobe_1998 { Some(crate::profiles::ADOBE1998) } else { None })

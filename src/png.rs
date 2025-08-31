@@ -1,9 +1,9 @@
 use crate::alpha::is_opaque;
-use crate::convert::*;
-use crate::endian::*;
-use crate::format::*;
-use crate::image::*;
-use crate::loader::*;
+use crate::convert::{ToSRGBImage, FromOptions};
+use crate::endian::NativeEndian;
+use crate::format::Format;
+use crate::image::{Image, ChunkType, ImageMeta, ImageData};
+use crate::loader::{Loader, Profiles};
 use imgref::ImgVec;
 use lcms2::Profile;
 

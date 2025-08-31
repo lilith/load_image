@@ -1,5 +1,5 @@
-use crate::image::*;
-use lcms2::*;
+use crate::image::Image;
+use lcms2::{LCMSResult, Profile, InfoType, Locale};
 use std::fs;
 use std::io;
 use std::io::Read;
@@ -146,7 +146,7 @@ impl Loader {
     }
 
     pub(crate) fn check_dimensions(&self, width: usize, height: usize) -> Result<(), crate::Error> {
-        if width.checked_mul(height).map_or(true, |area| area > self.max_image_area) {
+        if width.checked_mul(height).is_none_or(|area| area > self.max_image_area) {
             Err(crate::Error::ImageTooLarge)
         } else {
             Ok(())

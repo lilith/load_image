@@ -27,7 +27,7 @@ pub(crate) fn parse_exif(data: &[u8]) -> (u16, bool) {
                     }
                 },
                 _ => {},
-            };
+            }
         }
     }
     (orientation, is_adobe_1998)
