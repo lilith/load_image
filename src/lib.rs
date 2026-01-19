@@ -62,6 +62,7 @@ pub mod export {
     pub mod rgb {
         pub use ::rgb::alt::*;
         pub use ::rgb::*;
+        pub use ::rgb::prelude::*;
         pub type GRAY16 = ::rgb::Gray<u16>;
         pub type GRAY8 = ::rgb::Gray<u8>;
         pub type GRAYA16 = ::rgb::GrayAlpha<u16>;
