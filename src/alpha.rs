@@ -1,45 +1,51 @@
-use rgb::*;
-use rgb::alt::GrayAlpha;
-
-pub trait IsTransparentPixel {
-    fn is_transparent(&self) -> bool;
-}
-
-impl IsTransparentPixel for RGBA8 {
-    #[inline]
-    fn is_transparent(&self) -> bool {
-        self.a != 255
-    }
-}
-
-impl IsTransparentPixel for RGBA16 {
-    #[inline]
-    fn is_transparent(&self) -> bool {
-        self.a != 65535
-    }
-}
-
-impl IsTransparentPixel for GrayAlpha<u8> {
-    #[inline]
-    fn is_transparent(&self) -> bool {
-        self.a != 255
-    }
-}
-
-impl IsTransparentPixel for GrayAlpha<u16> {
-    #[inline]
-    fn is_transparent(&self) -> bool {
-        self.a != 65535
-    }
-}
+// Helper functions for checking alpha transparency
+// Works with both rgb 0.8.52 and 0.8.91+ by using type aliases
 
 #[inline]
-pub fn is_opaque<T>(bitmap: &[T]) -> bool where T: IsTransparentPixel {
-    !bitmap.iter().any(IsTransparentPixel::is_transparent)
+pub fn is_opaque<T>(bitmap: &[T]) -> bool 
+where
+    T: HasAlphaChannel,
+{
+    T::is_opaque_slice(bitmap)
+}
+
+// Private trait for internal dispatch
+trait HasAlphaChannel: Sized {
+    fn is_opaque_slice(bitmap: &[Self]) -> bool;
+}
+
+impl HasAlphaChannel for rgb::RGBA8 {
+    #[inline]
+    fn is_opaque_slice(bitmap: &[Self]) -> bool {
+        !bitmap.iter().any(|px| px.a != 255)
+    }
+}
+
+impl HasAlphaChannel for rgb::RGBA16 {
+    #[inline]
+    fn is_opaque_slice(bitmap: &[Self]) -> bool {
+        !bitmap.iter().any(|px| px.a != 65535)
+    }
+}
+
+impl HasAlphaChannel for rgb::GrayAlpha<u8> {
+    #[inline]
+    fn is_opaque_slice(bitmap: &[Self]) -> bool {
+        !bitmap.iter().any(|px| px.a != 255)
+    }
+}
+
+impl HasAlphaChannel for rgb::GrayAlpha<u16> {
+    #[inline]
+    fn is_opaque_slice(bitmap: &[Self]) -> bool {
+        !bitmap.iter().any(|px| px.a != 65535)
+    }
 }
 
 #[test]
 fn alphapx() {
+    use rgb::*;
+    
     let a = vec![RGBA8::new(0, 0, 0, 255)];
     assert!(is_opaque(&a));
 
